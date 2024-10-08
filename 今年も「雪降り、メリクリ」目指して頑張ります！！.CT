@@ -443,7 +443,7 @@ SetVisualizePitchBends(1)
 SetPhigrosMode(1)
 SetShowMarkers(0)
 SetTickBased(1)
-SetDisableUI(0)
+SetDisableUI(1)
 SetLimitFPS(1)
 SetCaption("Welcome to Piano-FX Pro")
 -- Main Program:
@@ -475,6 +475,8 @@ table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*27+GetPPQ()*2,
 table.insert(ThreadList,InstantaneousAnimationByTick(127,GetPPQ()*4*27+GetPPQ()*2,SetEndKey))
 table.insert(ThreadList,SmoothAnimationByTick(128/88,1,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTick(CenterX(129/88),0,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetOffsetX))
+table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*28,SetDisableUI))
+table.insert(ThreadList,InstantaneousAnimationByTick(1,GetPPQ()*4*28,SetShowMarkers))
 RunThreads(ThreadList)
 --[[
 Notice:

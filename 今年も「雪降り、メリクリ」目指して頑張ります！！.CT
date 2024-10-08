@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="42">
+  <CheatEntries/>
+  <UserdefinedSymbols/>
+  <LuaScript>-- Definitions: (DO NOT CHANGE!)
+openProcess("Piano-FX-Pro.exe")
+Microseconds="Piano-FX-Pro.exe+941650"
+Ticks="Piano-FX-Pro.exe+94165C"
+Resolution="Piano-FX-Pro.exe+93D318"
+Volume="Piano-FX-Pro.exe+941508"
+Mute="Piano-FX-Pro.exe+9414F6"
+PlaybackSpeed="Piano-FX-Pro.exe+9414F8"
+NoteSpeed="Piano-FX-Pro.exe+941500"
+OffsetX="Piano-FX-Pro.exe+941520"
+OffsetY="Piano-FX-Pro.exe+941524"
+Zoom="Piano-FX-Pro.exe+941528"
+StartKey="Piano-FX-Pro.exe+941424"
+EndKey="Piano-FX-Pro.exe+941428"
+KeyMode="Piano-FX-Pro.exe+941420"
+Width="Piano-FX-Pro.exe+93D310"
+Height="Piano-FX-Pro.exe+93D314"
+Paused="Piano-FX-Pro.exe+9414F5"
+Keyboard="Piano-FX-Pro.exe+941519"
+VisualizePitchBends="Piano-FX-Pro.exe+941578"
+PhigrosMode="Piano-FX-Pro.exe+941550"
+ShowMarkers="Piano-FX-Pro.exe+941549"
+TickBased="Piano-FX-Pro.exe+941548"
+DisableUI="Piano-FX-Pro.exe+9415A2"
+LimitFPS="Piano-FX-Pro.exe+9414C9"
+Caption="Piano-FX-Pro.exe+93D320"
+MS=1e+3
+S=1e+6
+function GetMicroseconds()
+return readQword(Microseconds)
+end
+function GetTicks()
+return readInteger(Ticks,true)
+end
+function GetPPQ()
+return readInteger(Resolution)
+end
+function GetVolume()
+return readDouble(Volume)
+end
+function GetMute()
+return readByte(Mute)
+end
+function GetPlaybackSpeed()
+return readDouble(PlaybackSpeed)
+end
+function GetNoteSpeed()
+return readDouble(NoteSpeed)
+end
+function GetStartKey()
+return readInteger(StartKey)
+end
+function GetEndKey()
+return readInteger(EndKey)
+end
+function GetKeyMode()
+return readInteger(KeyMod)
+end
+function GetOffsetX()
+return readFloat(OffsetX)
+end
+function GetOffsetY()
+return readFloat(OffsetY)
+end
+function GetZoom()
+return readFloat(Zoom)
+end
+function GetWidth()
+return readInteger(Width)
+end
+function GetHeight()
+return readInteger(Height)
+end
+function GetPaused()
+return readByte(Paused)
+end
+function GetKeyboard()
+return readByte(Keyboard)
+end
+function GetVisualizePitchBends()
+return readByte(VisualizePitchBends)
+end
+function GetPhigrosMode()
+return readByte(PhigrosMode)
+end
+function GetShowMarkers()
+return readByte(ShowMarkers)
+end
+function GetTickBased()
+return readByte(TickBased)
+end
+function GetDisableUI()
+return readByte(DisableUI)
+end
+function GetLimitFPS()
+return readByte(LimitFPS)
+end
+function GetCaption()
+return readString(Caption)
+end
+function SetMicroseconds(VAL)
+writeQword(Microseconds,VAL)
+end
+function SetVolume(VAL)
+writeDouble(Volume,VAL)
+end
+function SetMute(VAL)
+writeByte(Mute,VAL)
+end
+function SetPlaybackSpeed(VAL)
+writeDouble(PlaybackSpeed,VAL)
+end
+function SetNoteSpeed(VAL)
+writeDouble(NoteSpeed,VAL)
+end
+function SetStartKey(VAL)
+writeInteger(StartKey,VAL)
+end
+function SetEndKey(VAL)
+writeInteger(EndKey,VAL)
+end
+function SetKeyMode(VAL)
+writeInteger(KeyMode,VAL)
+end
+function SetOffsetX(VAL)
+writeFloat(OffsetX,VAL)
+end
+function SetOffsetY(VAL)
+writeFloat(OffsetY,VAL)
+end
+function SetZoom(VAL)
+writeFloat(Zoom,VAL)
+end
+function SetPaused(VAL)
+writeByte(Paused,VAL)
+end
+function SetKeyboard(VAL)
+writeByte(Keyboard,VAL)
+end
+function SetVisualizePitchBends(VAL)
+writeByte(VisualizePitchBends,VAL)
+end
+function SetPhigrosMode(VAL)
+writeByte(PhigrosMode,VAL)
+end
+function SetShowMarkers(VAL)
+writeByte(ShowMarkers,VAL)
+end
+function SetTickBased(VAL)
+writeByte(TickBased,VAL)
+end
+function SetDisableUI(VAL)
+writeByte(DisableUI,VAL)
+end
+function SetLimitFPS(VAL)
+writeByte(LimitFPS,VAL)
+end
+function SetCaption(VAL)
+writeByte(getAddress(Caption)+#VAL,0);writeString(Caption,VAL)
+end
+function EaseLinear(x)
+return x
+end
+function EaseInSine(x)
+return 1-math.cos((x*math.pi)/2)
+end
+function EaseOutSine(x)
+return math.sin((x*math.pi)/2)
+end
+function EaseInOutSine(x)
+return -(math.cos(math.pi*x)-1)/2
+end
+function EaseInQuad(x)
+return x*x
+end
+function EaseOutQuad(x)
+return 1-(1-x)*(1-x)
+end
+function EaseInOutQuad(x)
+return x&lt;0.5 and 2*x*x or 1-math.pow(-2*x+2,2)/2
+end
+function EaseInCubic(x)
+return x*x*x
+end
+function EaseOutCubic(x)
+return 1-math.pow(1-x,3)
+end
+function EaseInOutCubic(x)
+return x&lt;0.5 and 4*x*x*x or 1-math.pow(-2*x+2,3)/2
+end
+function EaseInQuart(x)
+return x*x*x*x
+end
+function EaseOutQuart(x)
+return 1-math.pow(1-x,4)
+end
+function EaseInOutQuart(x)
+return x&lt;0.5 and 8*x*x*x*x or 1-math.pow(-2*x+2,4)/2
+end
+function EaseInQuint(x)
+return x*x*x*x*x
+end
+function EaseOutQuint(x)
+return 1-math.pow(1-x,5)
+end
+function EaseInOutQuint(x)
+return x&lt;0.5 and 16*x*x*x*x*x or 1-math.pow(-2*x+2,5)/2
+end
+function EaseInExpo(x)
+return x == 0 and 0 or math.pow(2,10*x-10)
+end
+function EaseOutExpo(x)
+return x == 1 and 1 or 1-math.pow(2,-10*x)
+end
+function EaseInOutExpo(x)
+return x == 0 and 0 or x == 1 and 1 or x&lt;0.5 and math.pow(2,20*x-10)/2 or (2-math.pow(2,-20*x+10))/2
+end
+function EaseInCirc(x)
+return 1-math.sqrt(1-math.pow(x,2))
+end
+function EaseOutCirc(x)
+return math.sqrt(1-math.pow(x-1,2))
+end
+function EaseInOutCirc(x)
+return x&lt;0.5 and (1-math.sqrt(1-math.pow(2*x,2)))/2 or (math.sqrt(1-math.pow(-2*x+2,2))+1)/2
+end
+function EaseInBack(x)
+local c1=1.70158
+local c3=c1+1
+return c3*x*x*x-c1*x*x
+end
+function EaseOutBack(x)
+local c1=1.70158
+local c3=c1+1
+return 1+c3*math.pow(x-1,3)+c1*math.pow(x-1,2)
+end
+function EaseInOutBack(x)
+local c1=1.70158
+local c2=c1*1.525
+return x&lt;0.5 and (math.pow(2*x,2)*((c2+1)*2*x-c2))/2 or (math.pow(2*x-2,2)*((c2+1)*(x*2-2)+c2)+2)/2
+end
+function EaseInElastic(x)
+local c4=(2*math.pi)/3
+return x == 0 and 0 or x == 1 and 1 or -math.pow(2,10*x-10)*math.sin((x*10-10.75)*c4)
+end
+function EaseOutElastic(x)
+local c4=(2*math.pi)/3
+return x == 0 and 0 or x == 1 and 1 or math.pow(2,-10*x)*math.sin((x*10-0.75)*c4)+1
+end
+function EaseInOutElastic(x)
+local c5=(2*math.pi)/4.5
+return x == 0 and 0 or x == 1 and 1 or x&lt;0.5 and -(math.pow(2,20*x-10)*math.sin((20*x-11.125)*c5))/2 or (math.pow(2,-20*x+10)*math.sin((20*x-11.125)*c5))/2+1
+end
+function EaseInBounce(x)
+return 1-EaseOutBounce(1-x)
+end
+function EaseOutBounce(x)
+local n1=7.5625
+local d1=2.75
+if x&lt;1/d1 then
+return n1*x*x
+elseif x&lt;2/d1 then
+return n1*(x-1.5/d1)*(x-1.5/d1)+0.75
+elseif x&lt;2.5/d1 then
+return n1*(x-2.25/d1)*(x-2.25/d1)+0.9375
+else
+return n1*(x-2.625/d1)*(x-2.625/d1)+0.984375
+end
+end
+function EaseInOutBounce(x)
+return x&lt;0.5 and (1-EaseOutBounce(1-2*x))/2 or (1+EaseOutBounce(2*x-1))/2
+end
+function SmoothAnimationByTime(StartValue,EndValue,StartTime,EndTime,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+while (GetMicroseconds() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime))*(EndValue-StartValue))
+coroutine.yield()
+end
+SetValueFunction(EndValue)
+end)
+end
+function TargetAnimationByTime(GetValueFunction,TargetValue,StartTime,EndTime,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local StartValue=GetValueFunction()
+while (GetMicroseconds() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime))*(TargetValue-StartValue))
+coroutine.yield()
+end
+SetValueFunction(TargetValue)
+end)
+end
+function SlicedSmoothAnimationByTime(StartValue,EndValue,StartTime,EndTime,Spacing,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local SliceIndex=1
+while (GetMicroseconds() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime))*(EndValue-StartValue))
+while (GetMicroseconds()&lt;StartTime+Spacing*SliceIndex and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SliceIndex=SliceIndex+1
+end
+SetValueFunction(EndValue)
+end)
+end
+function SlicedTargetAnimationByTime(GetValueFunction,TargetValue,StartTime,EndTime,Spacing,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local StartValue=GetValueFunction()
+local SliceIndex=1
+while (GetMicroseconds() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime))*(TargetValue-StartValue))
+while (GetMicroseconds()&lt;StartTime+Spacing*SliceIndex and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SliceIndex=SliceIndex+1
+end
+SetValueFunction(TargetValue)
+end)
+end
+function InstantaneousAnimationByTime(Value,Time,SetValueFunction)
+return coroutine.create(function()
+while (GetMicroseconds()&lt;Time and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SetValueFunction(Value)
+end)
+end
+function SmoothAnimationByTick(StartValue,EndValue,StartTime,EndTime,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+while (GetTicks() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetTicks()-StartTime)/(EndTime-StartTime))*(EndValue-StartValue))
+coroutine.yield()
+end
+SetValueFunction(EndValue)
+end)
+end
+function TargetAnimationByTick(GetValueFunction,TargetValue,StartTime,EndTime,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local StartValue=GetValueFunction()
+while (GetTicks() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetTicks()-StartTime)/(EndTime-StartTime))*(TargetValue-StartValue))
+coroutine.yield()
+end
+SetValueFunction(TargetValue)
+end)
+end
+function SlicedSmoothAnimationByTick(StartValue,EndValue,StartTime,EndTime,Spacing,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local SliceIndex=1
+while (GetTicks() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetTicks()-StartTime)/(EndTime-StartTime))*(EndValue-StartValue))
+while (GetTicks()&lt;StartTime+Spacing*SliceIndex and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SliceIndex=SliceIndex+1
+end
+SetValueFunction(EndValue)
+end)
+end
+function SlicedTargetAnimationByTick(GetValueFunction,TargetValue,StartTime,EndTime,Spacing,EasingFunction,SetValueFunction)
+return coroutine.create(function()
+while (GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+local StartValue=GetValueFunction()
+local SliceIndex=1
+while (GetTicks() &lt;= EndTime and GetTicks()&lt;TotalTicks) do
+SetValueFunction(StartValue+EasingFunction((GetTicks()-StartTime)/(EndTime-StartTime))*(TargetValue-StartValue))
+while (GetTicks()&lt;StartTime+Spacing*SliceIndex and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SliceIndex=SliceIndex+1
+end
+SetValueFunction(TargetValue)
+end)
+end
+function InstantaneousAnimationByTick(Value,Time,SetValueFunction)
+return coroutine.create(function()
+while (GetTicks()&lt;Time and GetTicks()&lt;TotalTicks) do
+coroutine.yield()
+end
+SetValueFunction(Value)
+end)
+end
+function CenterX(Zoom)
+return (GetWidth()*(1-Zoom))/2
+end
+function CenterY(Zoom)
+return -(GetHeight()*(1-Zoom))/2
+end
+function RunThreads(Threads)
+local Working=true
+while Working do
+Working=false
+for _,ThisThread in ipairs(Threads) do
+if coroutine.status(ThisThread) ~= "dead" then
+coroutine.resume(ThisThread)
+Working=true
+end
+end
+end
+end
+-- Initialization:
+TotalTicks=GetPPQ()*4*164
+SetMicroseconds(-3*S)
+SetVolume(1.00)
+SetMute(0)
+SetPlaybackSpeed(1.00)
+SetNoteSpeed(0.25)
+SetStartKey(21)
+SetEndKey(108)
+SetKeyMode(2)
+SetOffsetX(0.00)
+SetOffsetY(0.00)
+SetZoom(0.00)
+SetPaused(0)
+SetKeyboard(1)
+SetVisualizePitchBends(1)
+SetPhigrosMode(1)
+SetShowMarkers(0)
+SetTickBased(1)
+SetDisableUI(0)
+SetLimitFPS(1)
+SetCaption("Welcome to Piano-FX Pro")
+-- Main Program:
+ThreadList={}
+table.insert(ThreadList,SmoothAnimationByTime(0,1,-S,0,EaseOutBack,SetZoom))
+table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),-S,0,EaseOutBack,SetOffsetX))
+table.insert(ThreadList,SmoothAnimationByTime(CenterY(0),CenterY(1),-S,0,EaseOutBack,SetOffsetY))
+table.insert(ThreadList,InstantaneousAnimationByTime("",0,SetCaption))
+RunThreads(ThreadList)
+ThreadList={}
+table.insert(ThreadList,InstantaneousAnimationByTick("今年も「雪降り、メリクリ」目指して頑張ります！！",GetPPQ()*4*8,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Piano Edition",GetPPQ()*4*8+GetPPQ()*2,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Made by: Happy_mimimix &amp; osprPIKA233",GetPPQ()*4*8+GetPPQ()*4,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Enjoy! ",GetPPQ()*4*8+GetPPQ()*6,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("",GetPPQ()*4*8+GetPPQ()*8,SetCaption))
+RunThreads(ThreadList)
+ThreadList={}
+table.insert(ThreadList,InstantaneousAnimationByTick("Perhaps the most relaxing MIDI I've ever made? ",GetPPQ()*4*20,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Lose yourself in the rhythm... ",GetPPQ()*4*21,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Feel the tranquility... ",GetPPQ()*4*22,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Let your worries drift away... ",GetPPQ()*4*23,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Discover your inner peace... ",GetPPQ()*4*24,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Allow the music to guide you... ",GetPPQ()*4*25,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Embrace the calm... ",GetPPQ()*4*26,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Sit back and relax... ",GetPPQ()*4*27,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("Congrats! You've just fallen into my fantastic trap! LOL",GetPPQ()*4*27+GetPPQ()*2,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick("",GetPPQ()*4*28+GetPPQ()*2,SetCaption))
+table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*27+GetPPQ()*2,SetStartKey)) -- A smooth 88 -&gt; 128 transition
+table.insert(ThreadList,InstantaneousAnimationByTick(127,GetPPQ()*4*27+GetPPQ()*2,SetEndKey))
+table.insert(ThreadList,SmoothAnimationByTick(128/88,1,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetZoom))
+table.insert(ThreadList,SmoothAnimationByTick(CenterX(129/88),0,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetOffsetX))
+RunThreads(ThreadList)
+--[[
+Notice:
+Cheat Engine's UI may freeze and stop responding while the script is running.
+This is a normal phenomenon, please do not kill this process!
+]]
+
+</LuaScript>
+</CheatTable>

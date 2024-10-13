@@ -28,6 +28,7 @@ TickBased="Piano-FX-Pro.exe+941548"
 DisableUI="Piano-FX-Pro.exe+9415A2"
 LimitFPS="Piano-FX-Pro.exe+9414C9"
 Caption="Piano-FX-Pro.exe+93D320"
+WAPI=executeCodeLocalEx
 MS=1e+3
 S=1e+6
 function GetMicroseconds()
@@ -436,17 +437,53 @@ SetEndKey(108)
 SetKeyMode(2)
 SetOffsetX(0.00)
 SetOffsetY(0.00)
-SetZoom(0.00)
+SetZoom(-1.00)
 SetPaused(0)
 SetKeyboard(1)
 SetVisualizePitchBends(1)
 SetPhigrosMode(1)
-SetShowMarkers(0)
+SetShowMarkers(1)
 SetTickBased(1)
 SetDisableUI(1)
 SetLimitFPS(1)
 SetCaption("Welcome to Piano-FX Pro")
+-- Do this if you have color events on the first tick:
+SetMicroseconds(0)
+while (GetMicroseconds()&lt;1) do end
+SetMicroseconds(-3*S)
+createThread(function()
+-- Custom definitions:
+FullScreen="Piano-FX-Pro.exe+94151B"
+ShowToolbar="Piano-FX-Pro.exe+941518"
+AlwaysShow="Piano-FX-Pro.exe+94142C"
+AllowPause="Piano-FX-Pro.exe+9414F0"
+AllowSkip="Piano-FX-Pro.exe+93DE20"
+MainWindow=FindWindow("PFX",nil)
+m=createMemoryStream()
+m.size=16
+WAPI("GetWindowRect",MainWindow,m.Memory)
+m.Position=0
+x1=m.readDword()
+y1=m.readDword()
+x2=m.readDword()
+y2=m.readDword()
+m.destroy()
+writeByte(FullScreen,1)
+WAPI("postmessagea",MainWindow,0x0111,40080,0)
+WAPI("postmessagea",MainWindow,0x0111,40080,0)
+WAPI("postmessagea",MainWindow,0x0111,40080,0)
+writeByte(FullScreen,0)
+Menu=WAPI("GetMenu",MainWindow)
+WAPI("SetWindowPos",MainWindow,-2,x1,y1,x2-x1,y2-y1,0)
+CurrentCaption=getWindowCaption(MainWindow)
+CurrentStyle=WAPI("GetWindowLongA",MainWindow,-16)
 -- Main Program:
+writeByte(ShowToolbar,1)
+writeByte(AlwaysShow,0)
+WAPI("SetMenu",MainWindow,Menu)
+WAPI("ShowWindow",Toolbar,1)
+writeByte(AllowSkip,1)
+writeBytes(AllowPause,2)
 ThreadList={}
 table.insert(ThreadList,SmoothAnimationByTime(0,1,-S,0,EaseOutBack,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),-S,0,EaseOutBack,SetOffsetX))
@@ -475,14 +512,32 @@ table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*27+GetPPQ()*2,
 table.insert(ThreadList,InstantaneousAnimationByTick(127,GetPPQ()*4*27+GetPPQ()*2,SetEndKey))
 table.insert(ThreadList,SmoothAnimationByTick(128/88,1,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTick(CenterX(129/88),0,GetPPQ()*4*27+GetPPQ()*2,GetPPQ()*4*28+GetPPQ()*2,EaseOutQuart,SetOffsetX))
-table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*28,SetDisableUI))
-table.insert(ThreadList,InstantaneousAnimationByTick(1,GetPPQ()*4*28,SetShowMarkers))
+table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*28+GetPPQ()*2,SetDisableUI))
+table.insert(ThreadList,InstantaneousAnimationByTick(1,GetPPQ()*4*28+GetPPQ()*2,SetShowMarkers))
 RunThreads(ThreadList)
---[[
-Notice:
-Cheat Engine's UI may freeze and stop responding while the script is running.
-This is a normal phenomenon, please do not kill this process!
-]]
+writeByte(FullScreen,0)
+WAPI("SetMenu",MainWindow,0)
+writeByte(AllowSkip,0)
+writeBytes(AllowPause,0)
+AltEnterHook=createHotkey(function()
+if getForegroundWindow() == MainWindow then
+for i = 1,10 do
+WAPI("SetMenu",MainWindow,0)
+end
+end
+end,{0x12,0x0D})
+WAPI("SetWindowTextA",MainWindow,"You are now trapped inside Piano FX Pro forever and ever... ")
+WAPI("SetWindowLongA",MainWindow,-16,CurrentStyle&amp;(~0x00080000))
+
+while (GetTicks()&lt;TotalTicks) do end
+writeByte(FullScreen,0)
+WAPI("SetMenu",MainWindow,Menu)
+writeByte(AllowSkip,1)
+writeBytes(AllowPause,2)
+AltEnterHook.destroy()
+WAPI("SetWindowTextA",MainWindow,CurrentCaption)
+WAPI("SetWindowLongA",MainWindow,-16,CurrentStyle|0x00080000)
+end).resume()
 
 </LuaScript>
 </CheatTable>

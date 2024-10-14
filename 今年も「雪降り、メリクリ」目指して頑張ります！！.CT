@@ -558,8 +558,35 @@ bump(GetPPQ()*4*33+GetPPQ()+GetPPQ()/4)
 bump(GetPPQ()*4*33+GetPPQ()+GetPPQ()/4*2)
 bump(GetPPQ()*4*33+GetPPQ()+GetPPQ()/4*3)
 bump(GetPPQ()*4*33+GetPPQ()*2)
+bump(GetPPQ()*4*33+GetPPQ()*2+GetPPQ()/4*3)
+bump(GetPPQ()*4*33+GetPPQ()*3+GetPPQ()/2)
+bump(GetPPQ()*4*34+GetPPQ()/4)
+bump(GetPPQ()*4*34+GetPPQ())
+bump(GetPPQ()*4*34+GetPPQ()+GetPPQ()/2)
+bump(GetPPQ()*4*34+GetPPQ()+GetPPQ()/4*3)
+bump(GetPPQ()*4*34+GetPPQ()*2)
+bump(GetPPQ()*4*34+GetPPQ()*2+GetPPQ()/4*3)
+bump(GetPPQ()*4*34+GetPPQ()*3+GetPPQ()/2)
+bump(GetPPQ()*4*35+GetPPQ()/4)
+bump(GetPPQ()*4*35+GetPPQ())
+bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4)
+bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4*2)
+bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4*3)
+bump(GetPPQ()*4*35+GetPPQ()*2)
+table.insert(ThreadList,SlicedSmoothAnimationByTick(1,0.8,GetPPQ()*4*35+GetPPQ()*2,GetPPQ()*4*36+GetPPQ()*2,GetPPQ()/2,EaseInQuad,SetZoom))
+table.insert(ThreadList,SlicedSmoothAnimationByTick(0,CenterX(0.8)-100,GetPPQ()*4*35+GetPPQ()*2,GetPPQ()*4*36+GetPPQ()*2,GetPPQ()/4,EaseInQuad,SetOffsetX))
+table.insert(ThreadList,SlicedSmoothAnimationByTick(0,CenterX(0.8)+100,GetPPQ()*4*35+GetPPQ()*2+GetPPQ()/4,GetPPQ()*4*36+GetPPQ()*2+GetPPQ()/4,GetPPQ()/2,EaseInQuad,SetOffsetX))
+table.insert(ThreadList,SlicedSmoothAnimationByTick(1,CenterY(0.8),GetPPQ()*4*35+GetPPQ()*2,GetPPQ()*4*36+GetPPQ()*2,GetPPQ()/2,EaseInQuad,SetOffsetY))
+table.insert(ThreadList,InstantaneousAnimationByTick(CenterX(0.8),GetPPQ()*4*36+GetPPQ()*2+GetPPQ()/2,SetOffsetX))
 RunThreads(ThreadList)
-
+ThreadList={}
+start=GetPPQ()*4*37
+while start &lt;= GetPPQ()*4*52 do
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8),CenterY(0.8)-50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8)-50,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
+start=start+GetPPQ()
+end
+RunThreads(ThreadList)
 
 while (GetTicks()&lt;TotalTicks) do end
 writeByte(FullScreen,0)

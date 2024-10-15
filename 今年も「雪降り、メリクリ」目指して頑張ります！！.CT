@@ -450,7 +450,7 @@ SetCaption("Welcome to Piano-FX Pro")
 -- Do this if you have color events on the first tick:
 SetMicroseconds(0)
 while (GetMicroseconds()&lt;1) do end
-SetMicroseconds(-3*S)
+SetMicroseconds(0)
 createThread(function()
 -- Custom definitions:
 FullScreen="Piano-FX-Pro.exe+94151B"
@@ -486,10 +486,10 @@ WAPI("ShowWindow",Toolbar,1)
 writeByte(AllowSkip,1)
 writeBytes(AllowPause,2)
 ThreadList={}
-table.insert(ThreadList,SmoothAnimationByTime(0,1,-S,0,EaseOutBack,SetZoom))
-table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),-S,0,EaseOutBack,SetOffsetX))
-table.insert(ThreadList,SmoothAnimationByTime(CenterY(0),CenterY(1),-S,0,EaseOutBack,SetOffsetY))
-table.insert(ThreadList,InstantaneousAnimationByTime("",0,SetCaption))
+table.insert(ThreadList,SmoothAnimationByTime(0,1,S,2*S,EaseOutBack,SetZoom))
+table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),S,2*S,EaseOutBack,SetOffsetX))
+table.insert(ThreadList,SmoothAnimationByTime(CenterY(0),CenterY(1),S,2*S,EaseOutBack,SetOffsetY))
+table.insert(ThreadList,InstantaneousAnimationByTime("",2*S,SetCaption))
 RunThreads(ThreadList)
 ThreadList={}
 table.insert(ThreadList,InstantaneousAnimationByTick("今年も「雪降り、メリクリ」目指して頑張ります！！",GetPPQ()*4*9,SetCaption))
@@ -669,7 +669,7 @@ table.insert(ThreadList,SmoothAnimationByTick(CenterY(GetZoom())+30,CenterY(GetZ
 table.insert(ThreadList,SmoothAnimationByTick(CenterY(GetZoom())-30,CenterY(GetZoom())+30,start+GetPPQ()*3/2,start+GetPPQ()*3,EaseOutSine,SetOffsetY))
 start=start+GetPPQ()*3
 end
-table.insert(ThreadList,SmoothAnimationByTick(0.2,0.5,GetPPQ()*4*68+GetPPQ()*2,GetPPQ()*4*69+GetPPQ()*2,EaseInQuart,SetNoteSpeed))
+table.insert(ThreadList,SmoothAnimationByTick(0.2,0.8,GetPPQ()*4*68+GetPPQ()*2,GetPPQ()*4*69+GetPPQ()*2,EaseInQuart,SetNoteSpeed))
 table.insert(ThreadList,TargetAnimationByTick(GetZoom,1.0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetZoom))
 table.insert(ThreadList,TargetAnimationByTick(GetOffsetX,0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetOffsetX))
 table.insert(ThreadList,TargetAnimationByTick(GetOffsetY,0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetOffsetY))

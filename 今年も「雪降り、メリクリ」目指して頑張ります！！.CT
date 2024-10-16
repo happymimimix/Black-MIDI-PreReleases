@@ -469,6 +469,7 @@ y=m.readDword()
 w=m.readDword()-x
 h=m.readDword()-y
 m.destroy()
+SetPaused(1)
 writeByte(FullScreen,1)
 WAPI("postmessagea",MainWindow,0x0111,40080,0)
 WAPI("postmessagea",MainWindow,0x0111,40080,0)
@@ -476,6 +477,7 @@ WAPI("postmessagea",MainWindow,0x0111,40080,0)
 writeByte(FullScreen,0)
 Menu=WAPI("GetMenu",MainWindow)
 WAPI("SetWindowPos",MainWindow,-2,x,y,w,h,0)
+SetPaused(0)
 CurrentCaption=getWindowCaption(MainWindow)
 CurrentStyle=WAPI("GetWindowLongA",MainWindow,-16)
 -- Main Program:
@@ -516,6 +518,7 @@ table.insert(ThreadList,SmoothAnimationByTick(CenterX(129/88),0,GetPPQ()*4*28+Ge
 table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*29+GetPPQ()*2,SetDisableUI))
 table.insert(ThreadList,InstantaneousAnimationByTick(1,GetPPQ()*4*29+GetPPQ()*2,SetShowMarkers))
 RunThreads(ThreadList)
+SetPaused(1)
 m=createMemoryStream()
 m.size=16
 WAPI("GetWindowRect",GFX,m.Memory)
@@ -557,6 +560,7 @@ wm=m.readDword()-xm
 hm=m.readDword()-ym
 m.destroy()
 WAPI("SetWindowPos",MainWindow,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
+SetPaused(0)
 function bump(start)
 table.insert(ThreadList,SmoothAnimationByTick(1,0.9,start,start+GetPPQ()/2,EaseOutQuart,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTick(0.9,1,start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetZoom))
@@ -644,10 +648,9 @@ GetPPQ()*4*36+GetPPQ()*2+GetPPQ()/2,
 SetOffsetX
 ))
 RunThreads(ThreadList)
-
 ThreadList={}
 start=GetPPQ()*4*37
-while start &lt;= GetPPQ()*4*52 do
+while start&lt;=GetPPQ()*4*52 do
 table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8),CenterY(0.8)-50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
 table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8)-50,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
 start=start+GetPPQ()
@@ -655,27 +658,94 @@ end
 table.insert(ThreadList,SmoothAnimationByTick(0.35,0.8,GetPPQ()*4*51+GetPPQ()/2,GetPPQ()*4*52+GetPPQ()*2,EaseOutSine,SetNoteSpeed))
 table.insert(ThreadList,SmoothAnimationByTick(0.8,0.2,GetPPQ()*4*52+GetPPQ()*2,GetPPQ()*4*53+GetPPQ()*2,EaseOutSine,SetNoteSpeed))
 RunThreads(ThreadList)
-
 ThreadList={}
 start=GetPPQ()*4*53+GetPPQ()*2
-while start &lt;= GetPPQ()*4*69 do
+while start&lt;=GetPPQ()*4*69 do
 table.insert(ThreadList,SmoothAnimationByTick(CenterX(GetZoom())+30,CenterX(GetZoom())-30,start,start+GetPPQ(),EaseOutSine,SetOffsetX))
 table.insert(ThreadList,SmoothAnimationByTick(CenterX(GetZoom())-30,CenterX(GetZoom())+30,start+GetPPQ(),start+GetPPQ()*2,EaseOutSine,SetOffsetX))
 start=start+GetPPQ()*2
 end
 start=GetPPQ()*4*53+GetPPQ()*2
-while start &lt;= GetPPQ()*4*69 do
+while start&lt;=GetPPQ()*4*69 do
 table.insert(ThreadList,SmoothAnimationByTick(CenterY(GetZoom())+30,CenterY(GetZoom())-30,start,start+GetPPQ()*3/2,EaseOutSine,SetOffsetY))
 table.insert(ThreadList,SmoothAnimationByTick(CenterY(GetZoom())-30,CenterY(GetZoom())+30,start+GetPPQ()*3/2,start+GetPPQ()*3,EaseOutSine,SetOffsetY))
 start=start+GetPPQ()*3
 end
-table.insert(ThreadList,SmoothAnimationByTick(0.2,0.8,GetPPQ()*4*68+GetPPQ()*2,GetPPQ()*4*69+GetPPQ()*2,EaseInQuart,SetNoteSpeed))
+table.insert(ThreadList,SmoothAnimationByTick(0.2,0.8,GetPPQ()*4*68+GetPPQ()*2,GetPPQ()*4*69+GetPPQ()*2,EaseInExpo,SetNoteSpeed))
 table.insert(ThreadList,TargetAnimationByTick(GetZoom,1.0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetZoom))
 table.insert(ThreadList,TargetAnimationByTick(GetOffsetX,0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetOffsetX))
 table.insert(ThreadList,TargetAnimationByTick(GetOffsetY,0,GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*70,EaseOutQuad,SetOffsetY))
 RunThreads(ThreadList)
-
+function shake(start)
+table.insert(ThreadList,SlicedSmoothAnimationByTick(
+-100,
+0,
+start,
+start+GetPPQ()*2,
+GetPPQ()/4,
+EaseInQuad,
+SetOffsetX
+))
+table.insert(ThreadList,SlicedSmoothAnimationByTick(
+100,
+0,
+start+GetPPQ()/8,
+start+GetPPQ()*2+GetPPQ()/8,
+GetPPQ()/4,
+EaseInQuad,
+SetOffsetX
+))
+end
+function drop(start)
+table.insert(ThreadList,SmoothAnimationByTick(
+0,
+50,
+start,
+start+GetPPQ()/2,
+EaseInQuad,
+SetOffsetY
+))
+table.insert(ThreadList,SmoothAnimationByTick(
+50,
+0,
+start+GetPPQ()/2,
+start+GetPPQ(),
+EaseInQuad,
+SetOffsetY
+))
+end
+ThreadList={}
+table.insert(ThreadList,SmoothAnimationByTick(0.8,0.2,GetPPQ()*4*73,GetPPQ()*4*73+GetPPQ()*2,EaseOutSine,SetNoteSpeed))
+shake(GetPPQ()*4*73+GetPPQ()*2)
+shake(GetPPQ()*4*74+GetPPQ()*2)
+shake(GetPPQ()*4*75+GetPPQ()*2)
+table.insert(ThreadList,SmoothAnimationByTick(0.2,0.8,GetPPQ()*4*76+GetPPQ()*2,GetPPQ()*4*77,EaseInSine,SetNoteSpeed))
+table.insert(ThreadList,TargetAnimationByTick(GetZoom,0.6,GetPPQ()*4*76+GetPPQ()*2,GetPPQ()*4*77,EaseOutQuart,SetZoom))
+table.insert(ThreadList,TargetAnimationByTick(GetOffsetX,CenterX(0.6),GetPPQ()*4*76+GetPPQ()*2,GetPPQ()*4*77,EaseOutQuart,SetOffsetX))
+table.insert(ThreadList,TargetAnimationByTick(GetOffsetY,-20,GetPPQ()*4*76+GetPPQ()*2,GetPPQ()*4*77,EaseOutQuart,SetOffsetY))
+start=GetPPQ()*4*77
+while start+GetPPQ()*2&lt;=GetPPQ()*4*84+GetPPQ()*2 do
+table.insert(ThreadList,SmoothAnimationByTick(CenterX(0.6)-50,CenterX(0.6)+50,start,start+GetPPQ(),EaseInOutSine,SetOffsetX))
+table.insert(ThreadList,SmoothAnimationByTick(CenterX(0.6)+50,CenterX(0.6)-50,start+GetPPQ(),start+GetPPQ()*2,EaseInOutSine,SetOffsetX))
+start=start+GetPPQ()*2
+end
+table.insert(ThreadList,SmoothAnimationByTick(0.8,0.1,GetPPQ()*4*84+GetPPQ()*2,GetPPQ()*4*85+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
+table.insert(ThreadList,TargetAnimationByTick(GetZoom,1,GetPPQ()*4*84+GetPPQ()*2,GetPPQ()*4*85+GetPPQ()*2,EaseOutQuart,SetZoom))
+table.insert(ThreadList,TargetAnimationByTick(GetOffsetX,0,GetPPQ()*4*84+GetPPQ()*2,GetPPQ()*4*85+GetPPQ()*2,EaseOutQuart,SetOffsetX))
+table.insert(ThreadList,TargetAnimationByTick(GetOffsetY,0,GetPPQ()*4*84+GetPPQ()*2,GetPPQ()*4*85+GetPPQ()*2,EaseOutQuart,SetOffsetY))
+drop(GetPPQ()*4*85+GetPPQ()*2)
+drop(GetPPQ()*4*85+GetPPQ()*3+GetPPQ()/2)
+drop(GetPPQ()*4*86+GetPPQ())
+drop(GetPPQ()*4*86+GetPPQ()+GetPPQ()/2)
+drop(GetPPQ()*4*86+GetPPQ()*2)
+drop(GetPPQ()*4*86+GetPPQ()*3+GetPPQ()/2)
+table.insert(ThreadList,SmoothAnimationByTick(0.1,0.5,GetPPQ()*4*87+GetPPQ(),GetPPQ()*4*87+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
+table.insert(ThreadList,SmoothAnimationByTick(1,1.3,GetPPQ()*4*87+GetPPQ(),GetPPQ()*4*87+GetPPQ()*2,EaseOutQuart,SetZoom))
+table.insert(ThreadList,SmoothAnimationByTick(0.5,0.2,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
+table.insert(ThreadList,SmoothAnimationByTick(1.3,1,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetZoom))
+RunThreads(ThreadList)
 while (GetTicks()&lt;TotalTicks) do end
+SetPaused(1)
 m=createMemoryStream()
 m.size=16
 WAPI("GetWindowRect",GFX,m.Memory)
@@ -711,6 +781,7 @@ wm=m.readDword()-xm
 hm=m.readDword()-ym
 m.destroy()
 WAPI("SetWindowPos",MainWindow,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
+SetPaused(0)
 end).resume()
 
 </LuaScript>

@@ -614,6 +614,8 @@ bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4)
 bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4*2)
 bump(GetPPQ()*4*35+GetPPQ()+GetPPQ()/4*3)
 bump(GetPPQ()*4*35+GetPPQ()*2)
+RunThreads(ThreadList)
+ThreadList={}
 table.insert(ThreadList,SlicedSmoothAnimationByTick(
 1,
 0.8,

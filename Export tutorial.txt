@@ -25,5 +25,7 @@
 23. Click merge
 24. A new midi file with name Color.mid.Colored.mid.AfterSAFC.mid.AfterSAFC.mid shall appear
 25. Rename Color.mid.Colored.mid.AfterSAFC.mid.AfterSAFC.mid to 今年も「雪降り、メリクリ」目指して頑張ります！！.mid
+26. Open 今年も「雪降り、メリクリ」目指して頑張ります！！.zip with Fl Studio 12.3~12.5
+27. Export an audio file to Audio.wav
 
 Exporting completed! Enjoy. 

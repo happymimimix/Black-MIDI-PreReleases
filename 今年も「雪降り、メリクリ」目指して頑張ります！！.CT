@@ -751,7 +751,7 @@ drop(GetPPQ()*4*86+GetPPQ()*2)
 drop(GetPPQ()*4*86+GetPPQ()*3+GetPPQ()/2)
 table.insert(ThreadList,SmoothAnimationByTick(0.1,0.5,GetPPQ()*4*87+GetPPQ(),GetPPQ()*4*87+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
 table.insert(ThreadList,SmoothAnimationByTick(1,1.3,GetPPQ()*4*87+GetPPQ(),GetPPQ()*4*87+GetPPQ()*2,EaseOutQuart,SetZoom))
-table.insert(ThreadList,SmoothAnimationByTick(0.5,0.2,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
+table.insert(ThreadList,SmoothAnimationByTick(0.5,0.3,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
 table.insert(ThreadList,SmoothAnimationByTick(1.3,1,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetZoom))
 RunThreads(ThreadList)
 while (GetTicks()&lt;TotalTicks) do end

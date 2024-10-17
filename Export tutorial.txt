@@ -1,0 +1,29 @@
+今年も「雪降り、メリクリ」目指して頑張ります！！ MIDI export guide: 
+
+1. Open 今年も「雪降り、メリクリ」目指して頑張ります！！.zip with Fl Studio 20.6 or above
+2. Delete all automation channels in the channel rack
+3. Save as Notes.flp
+4. Feed Notes.flp to flp2midi 1.5.4 or above and enable muted patterns
+5. A new midi file with name Notes.flp.mid.Colored.mid shall appear
+6. Open 今年も「雪降り、メリクリ」目指して頑張ります！！.zip again with Fl Studio 20.6 or above
+7. Select all patterns in the pattern picker
+8. Right click and choose "Select in playlist"
+9. Mute all selected patterns in playlist
+10. Export all automation clips without any note events to Automations.mid
+11. Open Color.dms with Domino 1.43 or above
+12. Export to Color.mid
+13. Feed Color.mid to Piano FX Studio 2.03 or above and choose generate mode
+14. A new midi file with name Color.mid.Colored.mid shall appear
+15. Feed both Color.mid.Colored.mid and Notes.flp.mid to SAFC 1.4.4.1 or above
+16. Disable remove empty tracks
+17. Enable inplace merge
+18. Click merge
+19. A new midi file with name Color.mid.Colored.mid.AfterSAFC.mid shall appear
+20. Feed both Color.mid.Colored.mid.AfterSAFC.mid and Automations.mid to 1.4.4.1 or above
+21. Enable remove empty tracks
+22. Disable inplace merge
+23. Click merge
+24. A new midi file with name Color.mid.Colored.mid.AfterSAFC.mid.AfterSAFC.mid shall appear
+25. Rename Color.mid.Colored.mid.AfterSAFC.mid.AfterSAFC.mid to 今年も「雪降り、メリクリ」目指して頑張ります！！.mid
+
+Exporting completed! Enjoy. 

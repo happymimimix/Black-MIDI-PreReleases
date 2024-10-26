@@ -5,7 +5,7 @@
   <LuaScript>-- Definitions: (DO NOT CHANGE!)
 openProcess("Piano-FX-Pro.exe")
 Microseconds="Piano-FX-Pro.exe+941650"
-Ticks="Piano-FX-Pro.exe+94165C"
+Ticks="Piano-FX-Pro.exe+9416F4"
 Resolution="Piano-FX-Pro.exe+93D318"
 Volume="Piano-FX-Pro.exe+941508"
 Mute="Piano-FX-Pro.exe+9414F6"
@@ -535,8 +535,8 @@ h1=m.readDword()-y1
 m.destroy()
 writeByte(FullScreen,0)
 WAPI("SetMenu",MainWindow,0)
---writeByte(AllowSkip,0)
---writeBytes(AllowPause,0)
+writeByte(AllowSkip,0)
+writeBytes(AllowPause,0)
 AltEnterHook=createHotkey(function()
 if getForegroundWindow()==MainWindow then
 for i = 1,10 do
@@ -661,8 +661,8 @@ RunThreads(ThreadList)
 ThreadList={}
 start=GetPPQ()*4*37
 while start&lt;=GetPPQ()*4*52 do
-table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8),CenterY(0.8)-50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
-table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8)-50,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.9),CenterY(0.8)-50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.9)-100,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
 start=start+GetPPQ()
 end
 table.insert(ThreadList,SmoothAnimationByTick(0.35,0.8,GetPPQ()*4*51+GetPPQ()/2,GetPPQ()*4*52+GetPPQ()*2,EaseOutSine,SetNoteSpeed))

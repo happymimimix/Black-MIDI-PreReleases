@@ -28,9 +28,86 @@ TickBased="Piano-FX-Pro.exe+941548"
 DisableUI="Piano-FX-Pro.exe+9415A2"
 LimitFPS="Piano-FX-Pro.exe+9414C9"
 Caption="Piano-FX-Pro.exe+93D320"
-WAPI=executeCodeLocalEx
 MS=1e+3
 S=1e+6
+LastUpdate=os.time()*S+os.clock()*S
+EXE=executeCodeLocalEx
+hPFX=EXE("FindWindowA","PFX",0)
+hGFX=EXE("FindWindowExA",hPFX,0,"PFXGFX",0)
+hGDI=EXE("FindWindowA","PFXGDI",0)
+PFXdc=EXE("GetDC",hGFX)
+GDIdc=EXE("GetDC",hGDI)
+SRCCOPY=0x00CC0020
+SRCPAINT=0x00EE0086
+SRCAND=0x008800C6
+SRCINVERT=0x00660046
+SRCERASE=0x00440328
+NOTSRCCOPY=0x00330008
+NOTSRCERASE=0x001100A6
+MERGECOPY=0x00C000CA
+MERGEPAINT=0x00BB0226
+PATCOPY=0x00F00021
+PATPAINT=0x00FB0A09
+PATINVERT=0x005A0049
+DSTINVERT=0x00550009
+BLACKNESS=0x00000042
+WHITENESS=0x00FF0062
+BS_SOLID=0
+BS_NULL=1
+BS_HOLLOW=BS_NULL
+BS_HATCHED=2
+BS_PATTERN=3
+BS_INDEXED=4
+BS_DIBPATTERN=5
+BS_DIBPATTERNPT=6
+BS_PATTERN8X8=7
+BS_DIBPATTERN8X8=8
+BS_MONOPATTERN=9
+HS_HORIZONTAL=0
+HS_VERTICAL=1
+HS_FDIAGONAL=2
+HS_BDIAGONAL=3
+HS_CROSS=4
+HS_DIAGCROSS=5
+HS_API_MAX=12
+PS_SOLID=0
+PS_DASH=1
+PS_DOT=2
+PS_DASHDOT=3
+PS_DASHDOTDOT=4
+PS_NULL=5
+PS_INSIDEFRAME=6
+PS_USERSTYLE=7
+PS_ALTERNATE=8
+PS_STYLE_MASK=0x0000000F
+PS_ENDCAP_ROUND=0x00000000
+PS_ENDCAP_SQUARE=0x00000100
+PS_ENDCAP_FLAT=0x00000200
+PS_ENDCAP_MASK=0x00000F00
+PS_JOIN_ROUND=0x00000000
+PS_JOIN_BEVEL=0x00001000
+PS_JOIN_MITER=0x00002000
+PS_JOIN_MASK=0x0000F000
+PS_COSMETIC=0x00000000
+PS_GEOMETRIC=0x00010000
+PS_TYPE_MASK=0x000F0000
+ALIGN_LEFT=0x0100
+ALIGN_CENTER=0x0200
+ALIGN_RIGHT=0x0300
+ALIGN_TOP=0x0001
+ALIGN_MIDDLE=0x0002
+ALIGN_BOTTOM=0x0003
+WHITE_BRUSH=0
+LTGRAY_BRUSH=1
+GRAY_BRUSH=2
+DKGRAY_BRUSH=3
+BLACK_BRUSH=4
+NULL_BRUSH=5
+HOLLOW_BRUSH=NULL_BRUSH
+WHITE_PEN=6
+BLACK_PEN=7
+NULL_PEN=8
+MEM=createMemoryStream()
 function GetMicroseconds()
 return readQword(Microseconds)
 end
@@ -135,6 +212,48 @@ writeFloat(OffsetY,VAL)
 end
 function SetZoom(VAL)
 writeFloat(Zoom,VAL)
+end
+function SetWidth(VAL)
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local Px=MEM.readDword()
+local Py=MEM.readDword()
+local Pw=MEM.readDword()-Px
+local Ph=MEM.readDword()-Py
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local Gx=MEM.readDword()
+local Gy=MEM.readDword()
+local Gw=MEM.readDword()-Gx
+local Gh=MEM.readDword()-Gy
+local Margin=Pw-Gw
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,Px,Py,VAL+Margin,Ph,0)
+end
+function SetHeight(VAL)
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local Px=MEM.readDword()
+local Py=MEM.readDword()
+local Pw=MEM.readDword()-Px
+local Ph=MEM.readDword()-Py
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local Gx=MEM.readDword()
+local Gy=MEM.readDword()
+local Gw=MEM.readDword()-Gx
+local Gh=MEM.readDword()-Gy
+local Margin=Ph-Gh
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,Px,Py,Pw,VAL+Margin,0)
 end
 function SetPaused(VAL)
 writeByte(Paused,VAL)
@@ -417,13 +536,1648 @@ function RunThreads(Threads)
 local Working=true
 while Working do
 Working=false
-for _,ThisThread in ipairs(Threads) do
+for _,ThisThread in pairs(Threads) do
 if coroutine.status(ThisThread) ~= "dead" then
 coroutine.resume(ThisThread)
 Working=true
 end
 end
 end
+end
+function UpdateShaderFPSDisplay()
+if DisplayShaderFPS then
+local FrameTime=(os.time()*S+os.clock()*S)-LastUpdate+1
+local FPS=math.ceil((S/FrameTime)*100.0)/100.0
+local Text="Shader FPS: "..FPS
+local Font=EXE("CreateFontA",
+16,-- FontHeight
+0,-- FontWidth
+0,-- Escapement
+0,-- Orientation
+400,-- FontWeight
+0,-- Italic
+0,-- Underline
+0,-- StrikeOut
+1,-- CharSet
+0,-- OutPrecision
+0,-- ClipPrecision
+0,-- Quality
+0,-- PitchAndFamily
+"Fixedsys")-- FaceName
+EXE("SelectObject",GDIdc,Font)
+EXE("SetBkMode",GDIdc,1)
+EXE("SetTextColor",GDIdc,0x000000)
+EXE("TextOutA",GDIdc,16,16,Text,#Text)
+EXE("SetTextColor",GDIdc,0xFFFFFF)
+EXE("TextOutA",GDIdc,15,15,Text,#Text)
+EXE("DeleteObject",Font)
+end
+LastUpdate=os.time()*S+os.clock()*S
+end
+function RunShaderByTime(StartTime,EndTime,ShaderFunction,...)
+local EffectParameters={...}
+if hGDI==0 then return end
+createThread(function()
+while GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks do end
+while GetMicroseconds()&lt;=EndTime and GetTicks()&lt;TotalTicks do
+ShaderFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime),table.unpack(EffectParameters))
+UpdateShaderFPSDisplay()
+end
+end).resume()
+end
+function RunShaderByTick(StartTime,EndTime,ShaderFunction,...)
+local EffectParameters={...}
+if hGDI==0 then return end
+createThread(function()
+while GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks do end
+while GetTicks()&lt;=EndTime and GetTicks()&lt;TotalTicks do
+ShaderFunction((GetTicks()-StartTime)/(EndTime-StartTime),table.unpack(EffectParameters))
+UpdateShaderFPSDisplay()
+end
+end).resume()
+end
+function RunShaderByTimeAndWait(StartTime,EndTime,ShaderFunction,...)
+local EffectParameters={...}
+if hGDI==0 then return end
+while GetMicroseconds()&lt;StartTime and GetTicks()&lt;TotalTicks do end
+while GetMicroseconds()&lt;=EndTime and GetTicks()&lt;TotalTicks do
+ShaderFunction((GetMicroseconds()-StartTime)/(EndTime-StartTime),table.unpack(EffectParameters))
+UpdateShaderFPSDisplay()
+end
+end
+function RunShaderByTickAndWait(StartTime,EndTime,ShaderFunction,...)
+local EffectParameters={...}
+if hGDI==0 then return end
+while GetTicks()&lt;StartTime and GetTicks()&lt;TotalTicks do end
+while GetTicks()&lt;=EndTime and GetTicks()&lt;TotalTicks do
+ShaderFunction((GetTicks()-StartTime)/(EndTime-StartTime),table.unpack(EffectParameters))
+UpdateShaderFPSDisplay()
+end
+end
+-- Custom Definitions: (Version: 3.01)
+FullScreen="Piano-FX-Pro.exe+94151B"
+ShowToolbar="Piano-FX-Pro.exe+941518"
+AlwaysShow="Piano-FX-Pro.exe+94142C"
+AllowPause="Piano-FX-Pro.exe+9414F0"
+AllowSkip="Piano-FX-Pro.exe+93DE20"
+ffmpeg="Piano-FX-Pro.exe+941579"
+-- GDI Shaders:
+function PlainShader(t)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,SRCCOPY)
+end
+function DarkBlankShader(t)
+EXE("PatBlt",GDIdc,0,0,GetWidth(),GetHeight(),BLACKNESS)
+end
+function BrightBlankShader(t)
+EXE("PatBlt",GDIdc,0,0,GetWidth(),GetHeight(),WHITENESS)
+end
+function WaveShader(t,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,GetWidth(),MaxWaveHeight,PFXdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+end
+function WaveGlitchShader(t,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local i=0
+while i&lt;=GetHeight() do
+if math.random(0,1)==0 then
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,GetWidth(),MaxWaveHeight,PFXdc,0,i,SRCPAINT)
+else
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,GetWidth(),MaxWaveHeight,PFXdc,0,i,SRCAND)
+end
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+end
+function GlitchShader(t,MaxSectionWidth,MinSectionWidth,ShiftingAmount)
+if MaxSectionWidth==nil then MaxSectionWidth=150 end
+if MinSectionWidth==nil then MinSectionWidth=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local i=0
+while i&lt;=GetWidth() do
+if math.random(0,1)==0 then
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCPAINT)
+else
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCAND)
+end
+i=i+math.random(MinSectionWidth,MaxSectionWidth)
+end
+end
+function ColorBurnShader(t,R,G,B)
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function ColorOffsetShader(t,OffsettingAmount)
+if OffsettingAmount==nil then OffsettingAmount=20 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0x00FFFF)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0xFF00FF)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0xFFFF00)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function ColorOffsetWaveShader(t,OffsettingAmount,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if OffsettingAmount==nil then OffsettingAmount=20 end
+if MaxWaveHeight==nil then MaxWaveHeight=40 end
+if MinWaveHeight==nil then MinWaveHeight=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0x00FFFF)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0xFF00FF)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Brush=EXE("CreateSolidBrush",0xFFFF00)
+EXE("SelectObject",MEMdc2,Brush)
+EXE("PatBlt",MEMdc2,0,0,W,H,PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+local i=0
+while i&lt;=H do
+EXE("BitBlt",MEMdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,PFXdc,0,i,SRCAND)
+EXE("BitBlt",GDIdc,0,i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function BetterColorOffsetShader(t,OffsettingAmount)
+if OffsettingAmount==nil then OffsettingAmount=5 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc_R=EXE("CreateCompatibleDC",GDIdc)
+local BMP_R=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_G=EXE("CreateCompatibleDC",GDIdc)
+local BMP_G=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_B=EXE("CreateCompatibleDC",GDIdc)
+local BMP_B=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_Main=EXE("CreateCompatibleDC",GDIdc)
+local BMP_Main=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc_R,BMP_R)
+local Brush=EXE("CreateSolidBrush",0x0000FF)
+EXE("SelectObject",MEMdc_R,Brush)
+EXE("PatBlt",MEMdc_R,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_R,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_G,BMP_G)
+local Brush=EXE("CreateSolidBrush",0x00FF00)
+EXE("SelectObject",MEMdc_G,Brush)
+EXE("PatBlt",MEMdc_G,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_G,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_B,BMP_B)
+local Brush=EXE("CreateSolidBrush",0xFF0000)
+EXE("SelectObject",MEMdc_B,Brush)
+EXE("PatBlt",MEMdc_B,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_B,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_Main,BMP_Main)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc_R,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc_G,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount)),W,H,MEMdc_B,0,0,SRCPAINT)
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc_Main,0,0,SRCCOPY)
+EXE("DeleteObject",BMP_R)
+EXE("DeleteDC",MEMdc_R)
+EXE("DeleteObject",BMP_G)
+EXE("DeleteDC",MEMdc_G)
+EXE("DeleteObject",BMP_B)
+EXE("DeleteDC",MEMdc_B)
+EXE("DeleteObject",BMP_Main)
+EXE("DeleteDC",MEMdc_Main)
+end
+function BetterColorOffsetWaveShader(t,OffsettingAmount,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if OffsettingAmount==nil then OffsettingAmount=5 end
+if MaxWaveHeight==nil then MaxWaveHeight=40 end
+if MinWaveHeight==nil then MinWaveHeight=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc_R=EXE("CreateCompatibleDC",GDIdc)
+local BMP_R=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_G=EXE("CreateCompatibleDC",GDIdc)
+local BMP_G=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_B=EXE("CreateCompatibleDC",GDIdc)
+local BMP_B=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_Main=EXE("CreateCompatibleDC",GDIdc)
+local BMP_Main=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc_R,BMP_R)
+local Brush=EXE("CreateSolidBrush",0x0000FF)
+EXE("SelectObject",MEMdc_R,Brush)
+EXE("PatBlt",MEMdc_R,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_R,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_G,BMP_G)
+local Brush=EXE("CreateSolidBrush",0x00FF00)
+EXE("SelectObject",MEMdc_G,Brush)
+EXE("PatBlt",MEMdc_G,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_G,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_B,BMP_B)
+local Brush=EXE("CreateSolidBrush",0xFF0000)
+EXE("SelectObject",MEMdc_B,Brush)
+EXE("PatBlt",MEMdc_B,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_B,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_Main,BMP_Main)
+local i=0
+while i&lt;=H do
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_R,0,i,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_G,0,i,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_B,0,i,SRCPAINT)
+EXE("BitBlt",GDIdc,0,i,W,MaxWaveHeight,MEMdc_Main,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP_R)
+EXE("DeleteDC",MEMdc_R)
+EXE("DeleteObject",BMP_G)
+EXE("DeleteDC",MEMdc_G)
+EXE("DeleteObject",BMP_B)
+EXE("DeleteDC",MEMdc_B)
+EXE("DeleteObject",BMP_Main)
+EXE("DeleteDC",MEMdc_Main)
+end
+function MEMZTunnelShader(t,TunnelDelay,TunnelScale,ClearScreenChance,FlipColorChance)
+if TunnelDelay==nil then TunnelDelay=10 end
+if TunnelScale==nil then TunnelScale=0.9 end
+if ClearScreenChance==nil then ClearScreenChance=40 end
+if FlipColorChance==nil then FlipColorChance=4 end
+if math.random(0,ClearScreenChance)==0 or layer==nil or delay==nil then
+if math.random(0,FlipColorChance)==0 then
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,NOTSRCCOPY)
+else
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,SRCCOPY)
+end
+layer=1
+delay=0
+else
+delay=delay+1
+if delay&gt;=TunnelDelay then
+layer=layer*TunnelScale
+delay=0
+end
+if math.random(0,FlipColorChance)==0 then
+EXE("StretchBlt",GDIdc,math.floor((GetWidth()-GetWidth()*layer)/2),math.floor((GetHeight()-GetHeight()*layer)/2),math.floor(GetWidth()*layer),math.floor(GetHeight()*layer),PFXdc,0,0,GetWidth(),GetHeight(),NOTSRCCOPY)
+else
+EXE("StretchBlt",GDIdc,math.floor((GetWidth()-GetWidth()*layer)/2),math.floor((GetHeight()-GetHeight()*layer)/2),math.floor(GetWidth()*layer),math.floor(GetHeight()*layer),PFXdc,0,0,GetWidth(),GetHeight(),SRCCOPY)
+end
+end
+end
+function DarkenShader(t,MaxAlpha,MinAlpha)
+if MaxAlpha==nil then MaxAlpha=255.0 end
+if MinAlpha==nil then MinAlpha=0.0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),BLACKNESS)
+local Alpha=math.ceil((MaxAlpha-MinAlpha)*(1.0-t)+MinAlpha)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function LightenShader(t,MaxAlpha,MinAlpha)
+if MaxAlpha==nil then MaxAlpha=255.0 end
+if MinAlpha==nil then MinAlpha=0.0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),WHITENESS)
+local Alpha=math.ceil((MaxAlpha-MinAlpha)*(1.0-t)+MinAlpha)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function LightenFromDarkShader(t,MaxAlpha,MinAlpha)
+if MaxAlpha==nil then MaxAlpha=255.0 end
+if MinAlpha==nil then MinAlpha=0.0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),BLACKNESS)
+local Alpha=math.ceil((MaxAlpha-MinAlpha)*t+MinAlpha)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function DarkenFromLightShader(t,MaxAlpha,MinAlpha)
+if MaxAlpha==nil then MaxAlpha=255.0 end
+if MinAlpha==nil then MinAlpha=0.0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),WHITENESS)
+local Alpha=math.ceil((MaxAlpha-MinAlpha)*t+MinAlpha)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function HatchBrushShader(t,R,G,B,BkR,BkG,BkB)
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+if BkR==nil then BkR=255 end
+if BkG==nil then BkG=0 end
+if BkB==nil then BkB=0 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateHatchBrush",math.random(0,5),Color)
+EXE("SelectObject",MEMdc,Brush)
+local BkColor=(BkB&lt;&lt;16)|(BkG&lt;&lt;8)|BkR
+EXE("SetBKColor",MEMdc,BkColor)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function TextShader(t,Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+if Text==nil then Text="Hello World" end
+if FontHeight==nil then FontHeight=50 end
+if FontWidth==nil then FontWidth=30 end
+if FontWeight==nil then FontWeight=400 end
+if FaceName==nil then FaceName="Fixedsys" end
+if Alignment==nil then Alignment=ALIGN_LEFT|ALIGN_TOP end
+if Italic==nil then Italic=0 end
+if Underline==nil then Underline=0 end
+if StrikeOut==nil then StrikeOut=0 end
+if PosX==nil then PosX=0 end
+if PosY==nil then PosY=0 end
+if NoBackground==nil then NoBackground=false end
+if TextR==nil then TextR=255 end
+if TextG==nil then TextG=255 end
+if TextB==nil then TextB=255 end
+if BkR==nil then BkR=255 end
+if BkG==nil then BkG=0 end
+if BkB==nil then BkB=0 end
+TextShaderBase(#Text,Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+end
+function TypeTextShader(t,Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+if Text==nil then Text="Hello World" end
+if FontHeight==nil then FontHeight=50 end
+if FontWidth==nil then FontWidth=30 end
+if FontWeight==nil then FontWeight=400 end
+if FaceName==nil then FaceName="Fixedsys" end
+if Alignment==nil then Alignment=ALIGN_LEFT|ALIGN_TOP end
+if Italic==nil then Italic=0 end
+if Underline==nil then Underline=0 end
+if StrikeOut==nil then StrikeOut=0 end
+if PosX==nil then PosX=0 end
+if PosY==nil then PosY=0 end
+if NoBackground==nil then NoBackground=false end
+if TextR==nil then TextR=255 end
+if TextG==nil then TextG=255 end
+if TextB==nil then TextB=255 end
+if BkR==nil then BkR=255 end
+if BkG==nil then BkG=0 end
+if BkB==nil then BkB=0 end
+TextShaderBase(math.ceil(#Text*t),Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+end
+function DeleteTextShader(t,Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+if Text==nil then Text="Hello World" end
+if FontHeight==nil then FontHeight=50 end
+if FontWidth==nil then FontWidth=30 end
+if FontWeight==nil then FontWeight=400 end
+if FaceName==nil then FaceName="Fixedsys" end
+if Alignment==nil then Alignment=ALIGN_LEFT|ALIGN_TOP end
+if Italic==nil then Italic=0 end
+if Underline==nil then Underline=0 end
+if StrikeOut==nil then StrikeOut=0 end
+if PosX==nil then PosX=0 end
+if PosY==nil then PosY=0 end
+if NoBackground==nil then NoBackground=false end
+if TextR==nil then TextR=255 end
+if TextG==nil then TextG=255 end
+if TextB==nil then TextB=255 end
+if BkR==nil then BkR=255 end
+if BkG==nil then BkG=0 end
+if BkB==nil then BkB=0 end
+TextShaderBase(math.ceil(#Text*(1.0-t)),Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+end
+function TextShaderBase(Length,Text,FontHeight,FontWidth,FontWeight,FaceName,Alignment,Italic,Underline,StrikeOut,PosX,PosY,NoBackground,TextR,TextG,TextB,BkR,BkG,BkB)
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,GetWidth(),GetHeight(),PFXdc,0,0,SRCCOPY)
+local Color=(TextB&lt;&lt;16)|(TextG&lt;&lt;8)|TextR
+EXE("SetTextColor",MEMdc,Color)
+if NoBackground then
+EXE("SetBkMode",MEMdc,1)
+else
+EXE("SetBkMode",MEMdc,2)
+end
+local BkColor=(BkB&lt;&lt;16)|(BkG&lt;&lt;8)|BkR
+EXE("SetBKColor",MEMdc,BkColor)
+local Font=EXE("CreateFontA",
+FontHeight,-- FontHeight
+FontWidth,-- FontWidth
+0,-- Escapement
+0,-- Orientation
+FontWeight,-- FontWeight
+Italic,-- Italic
+Underline,-- Underline
+StrikeOut,-- StrikeOut
+1,-- CharSet
+0,-- OutPrecision
+0,-- ClipPrecision
+0,-- Quality
+0,-- PitchAndFamily
+FaceName)-- FaceName
+EXE("SelectObject",MEMdc,Font)
+MEM.Position=0
+MEM.size=8
+EXE("GetTextExtentPoint32A",MEMdc,Text,Length,MEM.Memory)
+MEM.Position=0
+local W=MEM.readDword()
+local H=MEM.readDword()
+MEM.Position=0
+local X=math.floor(PosX)
+local Y=math.floor(PosY)
+if Alignment==0x0101 then
+X=math.floor(PosX)
+Y=math.floor(PosY)
+end
+if Alignment==0x0102 then
+X=math.floor(PosX)
+Y=math.floor(PosY-H/2)
+end
+if Alignment==0x0103 then
+X=math.floor(PosX)
+Y=math.floor(PosY-H)
+end
+if Alignment==0x0201 then
+X=math.floor(PosX-W/2)
+Y=math.floor(PosY)
+end
+if Alignment==0x0202 then
+X=math.floor(PosX-W/2)
+Y=math.floor(PosY-H/2)
+end
+if Alignment==0x0203 then
+X=math.floor(PosX-W/2)
+Y=math.floor(PosY-H)
+end
+if Alignment==0x0301 then
+X=math.floor(PosX-W)
+Y=math.floor(PosY)
+end
+if Alignment==0x0302 then
+X=math.floor(PosX-W)
+Y=math.floor(PosY-H/2)
+end
+if Alignment==0x0303 then
+X=math.floor(PosX-W)
+Y=math.floor(PosY-H)
+end
+EXE("TextOutA",MEMdc,X,Y,Text,Length)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",Font)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RotatePoint(X,Y,Angle,OriginX,OriginY)
+return OriginX+(X-OriginX)*math.cos(Angle)-(Y-OriginY)*math.sin(Angle),OriginY+(X-OriginX)*math.sin(Angle)+(Y-OriginY)*math.cos(Angle)
+end
+function RadialBlurShader(t,MaxRotation,BlendAlpha,Iteration)
+if MaxRotation==nil then MaxRotation=0.02 end
+if BlendAlpha==nil then BlendAlpha=1&lt;&lt;6 end
+if Iteration==nil then Iteration=3 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+local BlendFunc=(BlendAlpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,W,H,MEMdc2,0,0,W,H,BlendFunc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialPaintShader(t,MaxRotation,Iteration)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialAndShader(t,MaxRotation,Iteration)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCAND)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialBlurColorBurnShader(t,MaxRotation,BlendAlpha,Iteration,R,G,B)
+if MaxRotation==nil then MaxRotation=0.02 end
+if BlendAlpha==nil then BlendAlpha=1&lt;&lt;6 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+local BlendFunc=(BlendAlpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,W,H,MEMdc2,0,0,W,H,BlendFunc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialPaintColorBurnShader(t,MaxRotation,Iteration,R,G,B)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialAndColorBurnShader(t,MaxRotation,Iteration,R,G,B)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCAND)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialBlurWaveShader(t,MaxRotation,BlendAlpha,Iteration,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if BlendAlpha==nil then BlendAlpha=1&lt;&lt;6 end
+if Iteration==nil then Iteration=3 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+local BlendFunc=(BlendAlpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,W,H,MEMdc2,0,0,W,H,BlendFunc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialPaintWaveShader(t,MaxRotation,Iteration,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialAndWaveShader(t,MaxRotation,Iteration,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCAND)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialBlurColorBurnWaveShader(t,MaxRotation,BlendAlpha,Iteration,R,G,B,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if BlendAlpha==nil then BlendAlpha=1&lt;&lt;6 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+local BlendFunc=(BlendAlpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,W,H,MEMdc2,0,0,W,H,BlendFunc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialPaintColorBurnWaveShader(t,MaxRotation,Iteration,R,G,B,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCPAINT)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function RadialAndColorBurnWaveShader(t,MaxRotation,Iteration,R,G,B,MaxWaveHeight,MinWaveHeight,ShiftingAmount)
+if MaxRotation==nil then MaxRotation=0.02 end
+if Iteration==nil then Iteration=3 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+if MaxWaveHeight==nil then MaxWaveHeight=10 end
+if MinWaveHeight==nil then MinWaveHeight=5 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc,Brush)
+EXE("PatBlt",MEMdc,0,0,GetWidth(),GetHeight(),PATINVERT)
+EXE("DeleteObject",Brush)
+for i=1,Iteration do
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+local Rotation=math.random(-math.abs(MaxRotation*1000.0),math.abs(MaxRotation*1000.0))/1000.0
+local TopLeftX,TopLeftY=RotatePoint(0,0,Rotation,W/2,H/2)
+local TopRightX,TopRightY=RotatePoint(W,0,Rotation,W/2,H/2)
+local BottomLeftX,BottomLeftY=RotatePoint(0,H,Rotation,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(TopLeftX))
+MEM.writeDword(math.floor(TopLeftY))
+MEM.writeDword(math.floor(TopRightX))
+MEM.writeDword(math.floor(TopRightY))
+MEM.writeDword(math.floor(BottomLeftX))
+MEM.writeDword(math.floor(BottomLeftY))
+MEM.Position=0
+EXE("PlgBlt",MEMdc2,MEM.Memory,MEMdc,0,0,W,H,0,0,0)
+MEM.Position=0
+EXE("BitBlt",MEMdc,0,0,W,H,MEMdc2,0,0,SRCAND)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+local i=0
+while i&lt;=GetHeight() do
+EXE("BitBlt",GDIdc,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc,0,i,SRCCOPY)
+i=i+math.random(MinWaveHeight,MaxWaveHeight)
+end
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function InvertPolygonShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=150 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+Radius=Radius-50
+end
+for i=1,Delay do
+EXE("BitBlt",GDIdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for _,ThisPolygon in pairs(Polygons) do
+EXE("InvertRgn",GDIdc,ThisPolygon)
+end
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function ColorPolygonShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay,R,G,B)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=150 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+Radius=Radius-100
+end
+for i=1,Delay do
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Pen=EXE("CreatePen",PS_SOLID,0,Color)
+EXE("SelectObject",GDIdc,Pen)
+EXE("BitBlt",GDIdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for _,ThisPolygon in pairs(Polygons) do
+EXE("FrameRgn",GDIdc,ThisPolygon,Pen,25,25)
+end
+EXE("DeleteObject",Pen)
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function RandomColorPolygonShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=150 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+local Colors={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+local R=math.random(0,255)
+local G=math.random(0,255)
+local B=math.random(0,255)
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+table.insert(Colors,(B&lt;&lt;16)|(G&lt;&lt;8)|R)
+Radius=Radius-100
+end
+for i=1,Delay do
+EXE("BitBlt",GDIdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+for PolygonID,ThisPolygon in pairs(Polygons) do
+local Pen=EXE("CreatePen",PS_SOLID,0,Colors[PolygonID])
+EXE("SelectObject",GDIdc,Pen)
+EXE("FrameRgn",GDIdc,ThisPolygon,Pen,25,25)
+EXE("DeleteObject",Pen)
+end
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function InvertPolygonGlitchShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay,MaxSectionWidth,MinSectionWidth,ShiftingAmount)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=20 end
+if MaxSectionWidth==nil then MaxSectionWidth=150 end
+if MinSectionWidth==nil then MinSectionWidth=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+Radius=Radius-50
+end
+for i=1,Delay do
+local i=0
+while i&lt;=GetWidth() do
+if math.random(0,1)==0 then
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCPAINT)
+else
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCAND)
+end
+i=i+math.random(MinSectionWidth,MaxSectionWidth)
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("InvertRgn",GDIdc,ThisPolygon)
+end
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function ColorPolygonGlitchShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay,R,G,B,MaxSectionWidth,MinSectionWidth,ShiftingAmount)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=20 end
+if R==nil then R=0 end
+if G==nil then G=255 end
+if B==nil then B=0 end
+if MaxSectionWidth==nil then MaxSectionWidth=150 end
+if MinSectionWidth==nil then MinSectionWidth=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+Radius=Radius-100
+end
+for i=1,Delay do
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Pen=EXE("CreatePen",PS_SOLID,0,Color)
+EXE("SelectObject",GDIdc,Pen)
+local i=0
+while i&lt;=GetWidth() do
+if math.random(0,1)==0 then
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCPAINT)
+else
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCAND)
+end
+i=i+math.random(MinSectionWidth,MaxSectionWidth)
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("FrameRgn",GDIdc,ThisPolygon,Pen,25,25)
+end
+EXE("DeleteObject",Pen)
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function RandomColorPolygonGlitchShader(t,MaxSides,MinSides,MaxRadius,MinRadius,MaxCount,MinCount,Delay,MaxSectionWidth,MinSectionWidth,ShiftingAmount)
+if MaxSides==nil then MaxSides=10 end
+if MinSides==nil then MinSides=3 end
+if MaxRadius==nil then MaxRadius=400 end
+if MinRadius==nil then MinRadius=100 end
+if MaxCount==nil then MaxCount=3 end
+if MinCount==nil then MinCount=0 end
+if Delay==nil then Delay=20 end
+if MaxSectionWidth==nil then MaxSectionWidth=150 end
+if MinSectionWidth==nil then MinSectionWidth=10 end
+if ShiftingAmount==nil then ShiftingAmount=10 end
+local W=GetWidth()
+local H=GetHeight()
+local Count=math.random(MinCount,MaxCount)
+local Polygons={}
+local Colors={}
+for i=1,Count do
+local Sides=math.random(MinSides,MaxSides)
+local Radius=math.random(MinRadius,MaxRadius)
+local X=math.random(0,W)
+local Y=math.random(0,H)
+local Rotation=math.random()*(2*math.pi)
+local AngleStep=2*math.pi/Sides
+local R=math.random(0,255)
+local G=math.random(0,255)
+local B=math.random(0,255)
+while Radius&gt;0 do
+MEM.Position=0
+MEM.size=0
+for i=0,Sides-1 do
+MEM.size=MEM.size+8
+MEM.writeDword(X+math.floor(Radius*math.cos(i*AngleStep+Rotation)))
+MEM.writeDword(Y+math.floor(Radius*math.sin(i*AngleStep+Rotation)))
+end
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,Sides,2))
+MEM.Position=0
+table.insert(Colors,(B&lt;&lt;16)|(G&lt;&lt;8)|R)
+Radius=Radius-100
+end
+for i=1,Delay do
+local i=0
+while i&lt;=GetWidth() do
+if math.random(0,1)==0 then
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCPAINT)
+else
+EXE("BitBlt",GDIdc,i,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),MaxSectionWidth,GetHeight(),PFXdc,i,0,SRCAND)
+end
+i=i+math.random(MinSectionWidth,MaxSectionWidth)
+end
+for PolygonID,ThisPolygon in pairs(Polygons) do
+local Pen=EXE("CreatePen",PS_SOLID,0,Colors[PolygonID])
+EXE("SelectObject",GDIdc,Pen)
+EXE("FrameRgn",GDIdc,ThisPolygon,Pen,25,25)
+EXE("DeleteObject",Pen)
+end
+end
+end
+for _,ThisPolygon in pairs(Polygons) do
+EXE("DeleteObject",ThisPolygon)
+end
+end
+function TriangleFrameShader(t,Size,Speed,Transparency,R,G,B)
+if Size==nil then Size=200 end
+if Speed==nil then Speed=5 end
+if Transparency==nil then Transparency=191 end
+if R==nil then R=0 end
+if G==nil then G=127 end
+if B==nil then B=255 end
+local W=GetWidth()
+local H=GetHeight()
+if GlobalOffset==nil then
+GlobalOffset=0
+end
+local CurrentOffset=GlobalOffset
+while CurrentOffset &gt; 0 do
+CurrentOffset=CurrentOffset-Size
+end
+local Polygons={}
+while CurrentOffset &lt;= W+Size do
+local X1,Y1=CurrentOffset,Size
+local X2,Y2=RotatePoint(X1,Y1,2*math.pi/3,CurrentOffset,0)
+local X3,Y3=RotatePoint(X2,Y2,2*math.pi/3,CurrentOffset,0)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(X1))
+MEM.writeDword(math.floor(Y1))
+MEM.writeDword(math.floor(X2))
+MEM.writeDword(math.floor(Y2))
+MEM.writeDword(math.floor(X3))
+MEM.writeDword(math.floor(Y3))
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,3,2))
+X1,Y1=RotatePoint(X1,Y1,math.pi,W/2,H/2)
+X2,Y2=RotatePoint(X2,Y2,math.pi,W/2,H/2)
+X3,Y3=RotatePoint(X3,Y3,math.pi,W/2,H/2)
+MEM.Position=0
+MEM.size=24
+MEM.writeDword(math.floor(X1))
+MEM.writeDword(math.floor(Y1))
+MEM.writeDword(math.floor(X2))
+MEM.writeDword(math.floor(Y2))
+MEM.writeDword(math.floor(X3))
+MEM.writeDword(math.floor(Y3))
+MEM.Position=0
+table.insert(Polygons,EXE("CreatePolygonRgn",MEM.Memory,3,2))
+CurrentOffset=CurrentOffset+Size
+end
+MEM.Position=0
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc,BMP)
+EXE("BitBlt",MEMdc,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("BitBlt",MEMdc2,0,0,W,H,PFXdc,0,0,SRCCOPY)
+local Color=(B&lt;&lt;16)|(G&lt;&lt;8)|R
+local Brush=EXE("CreateSolidBrush",Color)
+EXE("SelectObject",MEMdc2,Brush)
+for _,ThisPolygon in pairs(Polygons) do
+EXE("FillRgn",MEMdc2,ThisPolygon,Brush)
+EXE("DeleteObject",ThisPolygon)
+end
+EXE("DeleteObject",Brush)
+local BlendFunc=(Transparency&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc,0,0,W,H,MEMdc2,0,0,W,H,BlendFunc)
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc,0,0,SRCCOPY)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+GlobalOffset=GlobalOffset+Speed
+end
+function CRTShader(t,ColorOffsetAmount,Transparency)
+if ColorOffsetAmount==nil then ColorOffsetAmount=2 end
+if Transparency==nil then Transparency=127 end
+local W=GetWidth()
+local H=GetHeight()
+local MEMdc_R=EXE("CreateCompatibleDC",GDIdc)
+local BMP_R=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_G=EXE("CreateCompatibleDC",GDIdc)
+local BMP_G=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_B=EXE("CreateCompatibleDC",GDIdc)
+local BMP_B=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+local MEMdc_Main=EXE("CreateCompatibleDC",GDIdc)
+local BMP_Main=EXE("CreateCompatibleBitmap",GDIdc,W,H)
+if Transparency&lt;255 and ColorOffsetAmount~=0 then
+EXE("SelectObject",MEMdc_R,BMP_R)
+local Brush=EXE("CreateSolidBrush",0x0000FF)
+EXE("SelectObject",MEMdc_R,Brush)
+EXE("PatBlt",MEMdc_R,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_R,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_G,BMP_G)
+local Brush=EXE("CreateSolidBrush",0x00FF00)
+EXE("SelectObject",MEMdc_G,Brush)
+EXE("PatBlt",MEMdc_G,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_G,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_B,BMP_B)
+local Brush=EXE("CreateSolidBrush",0xFF0000)
+EXE("SelectObject",MEMdc_B,Brush)
+EXE("PatBlt",MEMdc_B,0,0,W,H,PATCOPY)
+EXE("DeleteObject",Brush)
+EXE("BitBlt",MEMdc_B,0,0,W,H,PFXdc,0,0,SRCAND)
+EXE("SelectObject",MEMdc_Main,BMP_Main)
+EXE("BitBlt",MEMdc_Main,ColorOffsetAmount,0,W,H,MEMdc_R,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,-ColorOffsetAmount,0,W,H,MEMdc_G,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,0,ColorOffsetAmount,W,H,MEMdc_B,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,0,-ColorOffsetAmount,W,H,MEMdc_R,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,ColorOffsetAmount,-ColorOffsetAmount,W,H,MEMdc_G,0,0,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,-ColorOffsetAmount,ColorOffsetAmount,W,H,MEMdc_B,0,0,SRCPAINT)
+if Transparency&gt;0 then
+local BlendFunc=(Transparency&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc_Main,0,0,W,H,PFXdc,0,0,W,H,BlendFunc)
+end
+else
+EXE("SelectObject",MEMdc_Main,BMP_Main)
+EXE("BitBlt",MEMdc_Main,0,0,W,H,PFXdc,0,0,SRCCOPY)
+end
+local Brush=EXE("CreateSolidBrush",0x000000)
+EXE("SelectObject",MEMdc_Main,Brush)
+local i=math.random(0,2)
+while i&lt;=H do
+EXE("PatBlt",MEMdc_Main,0,i,W,1,PATCOPY)
+i=i+3
+end
+EXE("DeleteObject",Brush)
+EXE("BitBlt",GDIdc,0,0,W,H,MEMdc_Main,0,0,SRCCOPY)
+EXE("DeleteObject",BMP_R)
+EXE("DeleteDC",MEMdc_R)
+EXE("DeleteObject",BMP_G)
+EXE("DeleteDC",MEMdc_G)
+EXE("DeleteObject",BMP_B)
+EXE("DeleteDC",MEMdc_B)
+EXE("DeleteObject",BMP_Main)
+EXE("DeleteDC",MEMdc_Main)
+end
+function PixelateShader(t,Multiplier)
+if Multiplier==nil then Multiplier=4 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier))
+EXE("SelectObject",MEMdc,BMP)
+EXE("StretchBlt",MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),PFXdc,0,0,GetWidth(),GetHeight(),SRCCOPY)
+EXE("StretchBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function AlphaPixelateShader(t,Multiplier,Alpha)
+if Multiplier==nil then Multiplier=4 end
+if Alpha==nil then Alpha=63 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier))
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("StretchBlt",MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),PFXdc,0,0,GetWidth(),GetHeight(),SRCCOPY)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("StretchBlt",MEMdc2,0,0,GetWidth(),GetHeight(),MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),SRCCOPY)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc2,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc2,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
+end
+function BetterPixelateShader(t,Multiplier)
+if Multiplier==nil then Multiplier=4 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier))
+EXE("SelectObject",MEMdc,BMP)
+EXE("AlphaBlend",MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),PFXdc,0,0,GetWidth(),GetHeight(),0x00FF0000)
+EXE("AlphaBlend",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),0x00FF0000)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+end
+function BetterAlphaPixelateShader(t,Multiplier,Alpha)
+if Multiplier==nil then Multiplier=4 end
+if Alpha==nil then Alpha=63 end
+local MEMdc=EXE("CreateCompatibleDC",GDIdc)
+local BMP=EXE("CreateCompatibleBitmap",GDIdc,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier))
+local MEMdc2=EXE("CreateCompatibleDC",GDIdc)
+local BMP2=EXE("CreateCompatibleBitmap",GDIdc,GetWidth(),GetHeight())
+EXE("SelectObject",MEMdc,BMP)
+EXE("AlphaBlend",MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),PFXdc,0,0,GetWidth(),GetHeight(),0x00FF0000)
+EXE("SelectObject",MEMdc2,BMP2)
+EXE("AlphaBlend",MEMdc2,0,0,GetWidth(),GetHeight(),MEMdc,0,0,math.floor(GetWidth()/Multiplier),math.floor(GetHeight()/Multiplier),0x00FF0000)
+local BlendFunc=(Alpha&lt;&lt;16)|0x00000000
+EXE("AlphaBlend",MEMdc2,0,0,GetWidth(),GetHeight(),PFXdc,0,0,GetWidth(),GetHeight(),BlendFunc)
+EXE("BitBlt",GDIdc,0,0,GetWidth(),GetHeight(),MEMdc2,0,0,SRCCOPY)
+EXE("DeleteObject",BMP)
+EXE("DeleteDC",MEMdc)
+EXE("DeleteObject",BMP2)
+EXE("DeleteDC",MEMdc2)
 end
 -- Initialization:
 TotalTicks=GetPPQ()*4*164
@@ -451,47 +2205,34 @@ SetCaption("Welcome to Piano-FX Pro")
 SetMicroseconds(0)
 while (GetMicroseconds()&lt;1) do end
 SetMicroseconds(0)
-createThread(function()
--- Custom definitions:
-FullScreen="Piano-FX-Pro.exe+94151B"
-ShowToolbar="Piano-FX-Pro.exe+941518"
-AlwaysShow="Piano-FX-Pro.exe+94142C"
-AllowPause="Piano-FX-Pro.exe+9414F0"
-AllowSkip="Piano-FX-Pro.exe+93DE20"
-ffmpeg="Piano-FX-Pro.exe+941579"
-if readByte(ffmpeg)~=0 then SetMute(1) end
-MainWindow=WAPI("FindWindowA","PFX",0)
-GFX=WAPI("FindWindowExA",MainWindow,0,"PFXGFX",0)
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",MainWindow,m.Memory)
-m.Position=0
-x=m.readDword()
-y=m.readDword()
-w=m.readDword()-x
-h=m.readDword()-y
-m.destroy()
-if readByte(ffmpeg)~=0 then SetPaused(1) end
-writeByte(FullScreen,1)
-WAPI("postmessagea",MainWindow,0x0111,40080,0)
-WAPI("postmessagea",MainWindow,0x0111,40080,0)
-WAPI("postmessagea",MainWindow,0x0111,40080,0)
-writeByte(FullScreen,0)
-Menu=WAPI("GetMenu",MainWindow)
-WAPI("SetWindowPos",MainWindow,-2,x,y,w,h,0)
-CurrentCaption=getWindowCaption(MainWindow)
-CurrentStyle=WAPI("GetWindowLongA",MainWindow,-16)
-if readByte(ffmpeg)~=0 then
-sleep(500)
-SetPaused(0)
-end
 -- Main Program:
+createThread(function()
+if readByte(ffmpeg)~=0 then SetMute(1) end
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local x=MEM.readDword()
+local y=MEM.readDword()
+local w=MEM.readDword()-x
+local h=MEM.readDword()-y
+MEM.Position=0
+writeByte(FullScreen,1)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+writeByte(FullScreen,0)
+Menu=EXE("GetMenu",hPFX)
+EXE("SetWindowPos",hPFX,-2,x,y,w,h,0)
+CurrentCaption=getWindowCaption(hPFX)
+CurrentStyle=EXE("GetWindowLongA",hPFX,-16)
 writeByte(ShowToolbar,1)
 writeByte(AlwaysShow,0)
-WAPI("SetMenu",MainWindow,Menu)
-WAPI("ShowWindow",Toolbar,1)
+EXE("SetMenu",hPFX,Menu)
 writeByte(AllowSkip,1)
 writeBytes(AllowPause,2)
+end
 ThreadList={}
 table.insert(ThreadList,SmoothAnimationByTime(0,1,S,2*S,EaseOutBack,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),S,2*S,EaseOutBack,SetOffsetX))
@@ -523,51 +2264,47 @@ table.insert(ThreadList,SmoothAnimationByTick(CenterX(129/88),0,GetPPQ()*4*28+Ge
 table.insert(ThreadList,InstantaneousAnimationByTick(0,GetPPQ()*4*29+GetPPQ()*2,SetDisableUI))
 table.insert(ThreadList,InstantaneousAnimationByTick(1,GetPPQ()*4*29+GetPPQ()*2,SetShowMarkers))
 RunThreads(ThreadList)
-if readByte(ffmpeg)~=0 then SetPaused(1) end
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",GFX,m.Memory)
-m.Position=0
-x1=m.readDword()
-y1=m.readDword()
-w1=m.readDword()-x1
-h1=m.readDword()-y1
-m.destroy()
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x1=MEM.readDword()
+local y1=MEM.readDword()
+local w1=MEM.readDword()-x1
+local h1=MEM.readDword()-y1
+MEM.Position=0
 writeByte(FullScreen,0)
-WAPI("SetMenu",MainWindow,0)
-writeByte(AllowSkip,0)
-writeBytes(AllowPause,0)
+EXE("SetMenu",hPFX,0)
+--writeByte(AllowSkip,0)
+--writeBytes(AllowPause,0)
 AltEnterHook=createHotkey(function()
-if getForegroundWindow()==MainWindow then
+if getForegroundWindow()==hPFX then
 for i = 1,10 do
-WAPI("SetMenu",MainWindow,0)
+EXE("SetMenu",hPFX,0)
 end
 end
 end,{0x12,0x0D})
-WAPI("SetWindowTextA",MainWindow,"You are now trapped inside Piano FX Pro forever and ever... ")
-WAPI("SetWindowLongA",MainWindow,-16,CurrentStyle&amp;(~0x00080000))
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",GFX,m.Memory)
-m.Position=0
-x2=m.readDword()
-y2=m.readDword()
-w2=m.readDword()-x2
-h2=m.readDword()-y2
-m.destroy()
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",MainWindow,m.Memory)
-m.Position=0
-xm=m.readDword()
-ym=m.readDword()
-wm=m.readDword()-xm
-hm=m.readDword()-ym
-m.destroy()
-WAPI("SetWindowPos",MainWindow,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
-if readByte(ffmpeg)~=0 then
-sleep(500)
-SetPaused(0)
+EXE("SetWindowTextA",hPFX,"You are now trapped inside Piano FX Pro forever and ever... ")
+EXE("SetWindowLongA",hPFX,-16,CurrentStyle&amp;(~0x00080000))
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x2=MEM.readDword()
+local y2=MEM.readDword()
+local w2=MEM.readDword()-x2
+local h2=MEM.readDword()-y2
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local xm=MEM.readDword()
+local ym=MEM.readDword()
+local wm=MEM.readDword()-xm
+local hm=MEM.readDword()-ym
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
 end
 function bump(start)
 table.insert(ThreadList,SmoothAnimationByTick(1,0.9,start,start+GetPPQ()/2,EaseOutQuart,SetZoom))
@@ -754,46 +2491,42 @@ table.insert(ThreadList,SmoothAnimationByTick(1,1.3,GetPPQ()*4*87+GetPPQ(),GetPP
 table.insert(ThreadList,SmoothAnimationByTick(0.5,0.3,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
 table.insert(ThreadList,SmoothAnimationByTick(1.3,1,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetZoom))
 RunThreads(ThreadList)
-while (GetTicks()&lt;TotalTicks) do end
-if readByte(ffmpeg)~=0 then SetPaused(1) end
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",GFX,m.Memory)
-m.Position=0
-x1=m.readDword()
-y1=m.readDword()
-w1=m.readDword()-x1
-h1=m.readDword()-y1
-m.destroy()
+while GetTicks()&lt;TotalTicks do end
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x1=MEM.readDword()
+local y1=MEM.readDword()
+local w1=MEM.readDword()-x1
+local h1=MEM.readDword()-y1
+MEM.Position=0
 writeByte(FullScreen,0)
-WAPI("SetMenu",MainWindow,Menu)
+EXE("SetMenu",hPFX,Menu)
 writeByte(AllowSkip,1)
 writeBytes(AllowPause,2)
 AltEnterHook.destroy()
-WAPI("SetWindowTextA",MainWindow,CurrentCaption)
-WAPI("SetWindowLongA",MainWindow,-16,CurrentStyle|0x00080000)
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",GFX,m.Memory)
-m.Position=0
-x2=m.readDword()
-y2=m.readDword()
-w2=m.readDword()-x2
-h2=m.readDword()-y2
-m.destroy()
-m=createMemoryStream()
-m.size=16
-WAPI("GetWindowRect",MainWindow,m.Memory)
-m.Position=0
-xm=m.readDword()
-ym=m.readDword()
-wm=m.readDword()-xm
-hm=m.readDword()-ym
-m.destroy()
-WAPI("SetWindowPos",MainWindow,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
-if readByte(ffmpeg)~=0 then
-sleep(500)
-SetPaused(0)
+EXE("SetWindowTextA",hPFX,CurrentCaption)
+EXE("SetWindowLongA",hPFX,-16,CurrentStyle|0x00080000)
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x2=MEM.readDword()
+local y2=MEM.readDword()
+local w2=MEM.readDword()-x2
+local h2=MEM.readDword()-y2
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local xm=MEM.readDword()
+local ym=MEM.readDword()
+local wm=MEM.readDword()-xm
+local hm=MEM.readDword()-ym
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
 end
 end).resume()
 

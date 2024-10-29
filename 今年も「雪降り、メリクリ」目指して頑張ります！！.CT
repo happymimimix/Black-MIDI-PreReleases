@@ -866,10 +866,16 @@ EXE("DeleteObject",Brush)
 EXE("BitBlt",MEMdc_B,0,0,W,H,PFXdc,0,0,SRCAND)
 EXE("SelectObject",MEMdc_Main,BMP_Main)
 local i=0
+local OffsetRX=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
+local OffsetRY=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
+local OffsetGX=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
+local OffsetGY=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
+local OffsetBX=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
+local OffsetBY=math.random(-math.abs(OffsettingAmount),math.abs(OffsettingAmount))
 while i&lt;=H do
-EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_R,0,i,SRCPAINT)
-EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_G,0,i,SRCPAINT)
-EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_B,0,i,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_R,OffsetRX,i+OffsetRY,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_G,OffsetGX,i+OffsetGY,SRCPAINT)
+EXE("BitBlt",MEMdc_Main,math.random(-math.abs(ShiftingAmount),math.abs(ShiftingAmount)),i,W,MaxWaveHeight,MEMdc_B,OffsetBX,i+OffsetBY,SRCPAINT)
 EXE("BitBlt",GDIdc,0,i,W,MaxWaveHeight,MEMdc_Main,0,i,SRCCOPY)
 i=i+math.random(MinWaveHeight,MaxWaveHeight)
 end
@@ -2201,6 +2207,7 @@ SetTickBased(1)
 SetDisableUI(1)
 SetLimitFPS(1)
 SetCaption("Welcome to Piano-FX Pro")
+DisplayShaderFPS=true
 -- Do this if you have color events on the first tick:
 SetMicroseconds(0)
 while (GetMicroseconds()&lt;1) do end
@@ -2233,11 +2240,15 @@ EXE("SetMenu",hPFX,Menu)
 writeByte(AllowSkip,1)
 writeBytes(AllowPause,2)
 end
+EXE("SetForegroundWindow",hPFX)
 ThreadList={}
 table.insert(ThreadList,SmoothAnimationByTime(0,1,S,2*S,EaseOutBack,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTime(CenterX(0),CenterX(1),S,2*S,EaseOutBack,SetOffsetX))
 table.insert(ThreadList,SmoothAnimationByTime(CenterY(0),CenterY(1),S,2*S,EaseOutBack,SetOffsetY))
 table.insert(ThreadList,InstantaneousAnimationByTime("",2*S,SetCaption))
+RunShaderByTick(0,GetPPQ()*4,LightenFromDarkShader)
+RunShaderByTick(GetPPQ()*4,GetPPQ()*4*28+GetPPQ()*2,PlainShader)
+RunShaderByTick(GetPPQ()*4*28+GetPPQ()*2,GetPPQ()*4*29+GetPPQ()*2,RadialPaintShader)
 RunThreads(ThreadList)
 ThreadList={}
 table.insert(ThreadList,InstantaneousAnimationByTick("今年も「雪降り、メリクリ」目指して頑張ります！！",GetPPQ()*4*9,SetCaption))
@@ -2314,6 +2325,8 @@ table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.9),1,start+GetPPQ()/2,st
 table.insert(ThreadList,SmoothAnimationByTick(0,CenterX(0.9),start,start+GetPPQ()/2,EaseOutQuart,SetOffsetX))
 table.insert(ThreadList,SmoothAnimationByTick(CenterX(0.9),1,start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetX))
 end
+RunShaderByTick(GetPPQ()*4*29+GetPPQ()*2,GetPPQ()*4*37+GetPPQ()*2,BetterColorOffsetShader,2)
+RunShaderByTick(GetPPQ()*4*37+GetPPQ()*2,GetPPQ()*4*52+GetPPQ()*2,WaveShader)
 ThreadList={}
 bump(GetPPQ()*4*29+GetPPQ()*2)
 bump(GetPPQ()*4*29+GetPPQ()*3+GetPPQ()/2)
@@ -2395,11 +2408,14 @@ GetPPQ()*4*36+GetPPQ()*2+GetPPQ()/2,
 SetOffsetX
 ))
 RunThreads(ThreadList)
+RunShaderByTick(GetPPQ()*4*52+GetPPQ()*2,GetPPQ()*4*53+GetPPQ()*2,GlitchShader)
+RunShaderByTick(GetPPQ()*4*53+GetPPQ()*2,GetPPQ()*4*69+GetPPQ()*2,InvertPolygonGlitchShader)
+RunShaderByTick(GetPPQ()*4*69+GetPPQ()*2,GetPPQ()*4*73+GetPPQ()*2,PlainShader)
 ThreadList={}
 start=GetPPQ()*4*37
 while start&lt;=GetPPQ()*4*52 do
-table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.9),CenterY(0.8)-50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
-table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.9)-100,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8),CenterY(0.8)+50,start,start+GetPPQ()/2,EaseOutQuart,SetOffsetY))
+table.insert(ThreadList,SmoothAnimationByTick(CenterY(0.8)+50,CenterY(0.8),start+GetPPQ()/2,start+GetPPQ(),EaseOutQuart,SetOffsetY))
 start=start+GetPPQ()
 end
 table.insert(ThreadList,SmoothAnimationByTick(0.35,0.8,GetPPQ()*4*51+GetPPQ()/2,GetPPQ()*4*52+GetPPQ()*2,EaseOutSine,SetNoteSpeed))
@@ -2461,6 +2477,13 @@ EaseInQuad,
 SetOffsetY
 ))
 end
+RunShaderByTick(GetPPQ()*4*73+GetPPQ()*2,GetPPQ()*4*74,BetterColorOffsetShader)
+RunShaderByTick(GetPPQ()*4*74,GetPPQ()*4*74+GetPPQ()*2,PlainShader)
+RunShaderByTick(GetPPQ()*4*74+GetPPQ()*2,GetPPQ()*4*75,BetterColorOffsetShader)
+RunShaderByTick(GetPPQ()*4*75,GetPPQ()*4*75+GetPPQ()*2,PlainShader)
+RunShaderByTick(GetPPQ()*4*75+GetPPQ()*2,GetPPQ()*4*76,BetterColorOffsetShader)
+RunShaderByTick(GetPPQ()*4*76,GetPPQ()*4*77,PlainShader)
+RunShaderByTick(GetPPQ()*4*77,GetPPQ()*4*85+GetPPQ()*2,TriangleFrameShader)
 ThreadList={}
 table.insert(ThreadList,SmoothAnimationByTick(0.8,0.2,GetPPQ()*4*73,GetPPQ()*4*73+GetPPQ()*2,EaseOutSine,SetNoteSpeed))
 shake(GetPPQ()*4*73+GetPPQ()*2)
@@ -2490,7 +2513,14 @@ table.insert(ThreadList,SmoothAnimationByTick(0.1,0.5,GetPPQ()*4*87+GetPPQ(),Get
 table.insert(ThreadList,SmoothAnimationByTick(1,1.3,GetPPQ()*4*87+GetPPQ(),GetPPQ()*4*87+GetPPQ()*2,EaseOutQuart,SetZoom))
 table.insert(ThreadList,SmoothAnimationByTick(0.5,0.3,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetNoteSpeed))
 table.insert(ThreadList,SmoothAnimationByTick(1.3,1,GetPPQ()*4*89,GetPPQ()*4*89+GetPPQ()*2,EaseOutQuart,SetZoom))
+RunShaderByTick(GetPPQ()*4*85+GetPPQ()*2,GetPPQ()*4*89+GetPPQ()*2,PlainShader)
 RunThreads(ThreadList)
+RunShaderByTickAndWait(GetPPQ()*4*89+GetPPQ()*2,GetPPQ()*4*93+GetPPQ()*2,BetterColorOffsetWaveShader,5,10,5,0)
+RunShaderByTickAndWait(GetPPQ()*4*93+GetPPQ()*2,GetPPQ()*4*97+GetPPQ()*2,BetterColorOffsetWaveShader,10,10,5,5)
+RunShaderByTickAndWait(GetPPQ()*4*97+GetPPQ()*2,GetPPQ()*4*104,BetterColorOffsetWaveShader,20,10,5,10)
+RunShaderByTickAndWait(GetPPQ()*4*104,GetPPQ()*4*105+GetPPQ()*2,BetterColorOffsetWaveShader,40,40,10,100)
+RunShaderByTickAndWait(GetPPQ()*4*105+GetPPQ()*2,GetPPQ()*4*106+GetPPQ()*2,DarkBlankShader)
+RunShaderByTickAndWait(GetPPQ()*4*106+GetPPQ()*2,GetPPQ()*4*123+GetPPQ()*2,CRTShader)
 while GetTicks()&lt;TotalTicks do end
 if readByte(ffmpeg)==0 then
 MEM.Position=0
@@ -2529,6 +2559,5 @@ MEM.Position=0
 EXE("SetWindowPos",hPFX,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
 end
 end).resume()
-
 </LuaScript>
 </CheatTable>

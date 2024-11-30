@@ -1,0 +1,40 @@
+lastOpenedChartPath: 2.aff
+charts:
+- chartPath: 2.aff
+  audioPath: RTX20000.wav
+  baseBpm: 200
+  bpmText: 20000
+  syncBaseBpm: true
+  title: RTX20000
+  composer: Kobaryo
+  charter: mimimix
+  alias: ''
+  illustrator: ''
+  difficulty: Impossible
+  difficultyColor: '#7C1C30FF'
+  skin:
+    side: conflict
+    note: light
+    particle: light
+    track: conflict
+    accent: dynamix
+    singleLine: light
+  colors:
+    trace: '#9178AA7A'
+    shadow: '#5A5A5A3C'
+    arc:
+    - '#0CD4D4D9'
+    - '#FF96DCD9'
+    - '#23FF6CD9'
+    - '#FFF500D9'
+    arcLow:
+    - '#19A0EBD9'
+    - '#F0699BD9'
+    - '#28C81ED9'
+    - '#FFCB00D9'
+  lastWorkingTiming: 69974
+  previewEnd: 5000
+  searchTags: ''
+editorSettings:
+  lastUsedPublisher: mimimix
+  lastUsedPackageName: RTX20000

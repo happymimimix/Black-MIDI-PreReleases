@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="45">
+  <CheatEntries/>
+  <UserdefinedSymbols/>
+  <LuaScript>-- Definitions: (DO NOT CHANGE!)
+
+-- Initialization:
+SetMicroseconds(-3*S)
+SetVolume(1.00)
+SetMute(0)
+SetPlaybackSpeed(1.00)
+SetNoteSpeed(0.35)
+SetStartKey(21)
+SetEndKey(108)
+SetKeyMode(2)
+SetOffsetX(0.00)
+SetOffsetY(0.00)
+SetZoom(-1.00)
+SetPaused(0)
+SetKeyboard(1)
+SetVisualizePitchBends(1)
+SetPhigrosMode(1)
+SetShowMarkers(1)
+SetTickBased(1)
+SetDisableUI(1)
+SetLimitFPS(1)
+SetCaption("Welcome to Piano-FX Pro")
+DisplayShaderFPS=true
+-- Do this if you have color events on the first tick:
+SetMicroseconds(0)
+while (GetMicroseconds()&lt;1) do end
+SetMicroseconds(0)
+-- Main Program:
+createThread(function()
+if readByte(ffmpeg)~=0 then SetMute(1) end
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local x=MEM.readDword()
+local y=MEM.readDword()
+local w=MEM.readDword()-x
+local h=MEM.readDword()-y
+MEM.Position=0
+writeByte(FullScreen,1)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+EXE("postmessagea",hPFX,0x0111,40080,0)
+writeByte(FullScreen,0)
+Menu=EXE("GetMenu",hPFX)
+EXE("SetWindowPos",hPFX,-2,x,y,w,h,0)
+CurrentCaption=getWindowCaption(hPFX)
+CurrentStyle=EXE("GetWindowLongA",hPFX,-16)
+writeByte(ShowToolbar,1)
+writeByte(AlwaysShow,0)
+EXE("SetMenu",hPFX,Menu)
+writeByte(AllowSkip,1)
+writeBytes(AllowPause,2)
+end
+EXE("SetForegroundWindow",hPFX)
+SmoothAnimationByTime(0,1,S,2*S,EaseOutBack,SetZoom)
+SmoothAnimationByTime(CenterX(0),CenterX(1),S,2*S,EaseOutBack,SetOffsetX)
+SmoothAnimationByTime(CenterY(0),CenterY(1),S,2*S,EaseOutBack,SetOffsetY)
+InstantaneousAnimationByTime("",2*S,SetCaption)
+RunShaderByTick(0,GetResolution()*4,LightenFromDarkShader)
+RunShaderByTick(GetResolution()*4,GetResolution()*4*28+GetResolution()*2,PlainShader)
+InstantaneousAnimationByTickAndWait("今年も「雪降り、メリクリ」目指して頑張ります！！",GetResolution()*4*9,SetCaption)
+InstantaneousAnimationByTickAndWait("Piano Edition",GetResolution()*4*9+GetResolution()*2,SetCaption)
+InstantaneousAnimationByTickAndWait("Made by: Happy_mimimix &amp; osprPIKA233",GetResolution()*4*9+GetResolution()*4,SetCaption)
+InstantaneousAnimationByTickAndWait("Enjoy! ",GetResolution()*4*9+GetResolution()*6,SetCaption)
+InstantaneousAnimationByTickAndWait("",GetResolution()*4*9+GetResolution()*8,SetCaption)
+InstantaneousAnimationByTickAndWait("Perhaps the most relaxing MIDI I've ever made? ",GetResolution()*4*21,SetCaption)
+InstantaneousAnimationByTickAndWait("Lose yourself in the rhythm... ",GetResolution()*4*22,SetCaption)
+InstantaneousAnimationByTickAndWait("Feel the tranquility... ",GetResolution()*4*23,SetCaption)
+InstantaneousAnimationByTickAndWait("Let your worries drift away... ",GetResolution()*4*24,SetCaption)
+InstantaneousAnimationByTickAndWait("Discover your inner peace... ",GetResolution()*4*25,SetCaption)
+InstantaneousAnimationByTickAndWait("Allow the music to guide you... ",GetResolution()*4*26,SetCaption)
+InstantaneousAnimationByTickAndWait("Embrace the calm... ",GetResolution()*4*27,SetCaption)
+InstantaneousAnimationByTickAndWait("Sit back and relax... ",GetResolution()*4*28,SetCaption)
+RunShaderByTick(GetResolution()*4*28+GetResolution()*2,GetResolution()*4*29+GetResolution()*2,RadialPaintShader)
+InstantaneousAnimationByTick("Congrats! You've just fallen into my fantastic trap! LOL",GetResolution()*4*28+GetResolution()*2,SetCaption)
+InstantaneousAnimationByTick("",GetResolution()*4*29+GetResolution()*2,SetCaption)
+InstantaneousAnimationByTick(0,GetResolution()*4*28+GetResolution()*2,SetStartKey) -- A smooth 88 -&gt; 128 transition
+InstantaneousAnimationByTick(127,GetResolution()*4*28+GetResolution()*2,SetEndKey)
+SmoothAnimationByTick(128/88,1,GetResolution()*4*28+GetResolution()*2,GetResolution()*4*29+GetResolution()*2,EaseOutQuart,SetZoom)
+SmoothAnimationByTick(CenterX(129/88),0,GetResolution()*4*28+GetResolution()*2,GetResolution()*4*29+GetResolution()*2,EaseOutQuart,SetOffsetX)
+InstantaneousAnimationByTick(0,GetResolution()*4*29+GetResolution()*2,SetDisableUI)
+InstantaneousAnimationByTick(1,GetResolution()*4*29+GetResolution()*2,SetShowMarkers)
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x1=MEM.readDword()
+local y1=MEM.readDword()
+local w1=MEM.readDword()-x1
+local h1=MEM.readDword()-y1
+MEM.Position=0
+writeByte(FullScreen,0)
+EXE("SetMenu",hPFX,0)
+--writeByte(AllowSkip,0)
+--writeBytes(AllowPause,0)
+AltEnterHook=createHotkey(function()
+if getForegroundWindow()==hPFX then
+for i = 1,10 do
+EXE("SetMenu",hPFX,0)
+end
+end
+end,{0x12,0x0D})
+EXE("SetWindowTextA",hPFX,"You are now trapped inside Piano FX Pro forever and ever... ")
+EXE("SetWindowLongA",hPFX,-16,CurrentStyle&amp;(~0x00080000))
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x2=MEM.readDword()
+local y2=MEM.readDword()
+local w2=MEM.readDword()-x2
+local h2=MEM.readDword()-y2
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local xm=MEM.readDword()
+local ym=MEM.readDword()
+local wm=MEM.readDword()-xm
+local hm=MEM.readDword()-ym
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
+end
+function bump(start)
+SmoothAnimationByTick(0,CenterX(0.9),start,start+GetResolution()/2,EaseOutQuart,SetOffsetX)
+SmoothAnimationByTick(0,CenterY(0.9),start,start+GetResolution()/2,EaseOutQuart,SetOffsetY)
+SmoothAnimationByTick(1,0.9,start,start+GetResolution()/2,EaseOutQuart,SetZoom)
+SmoothAnimationByTick(CenterY(0.9),0,start+GetResolution()/2,start+GetResolution(),EaseOutQuart,SetOffsetY)
+SmoothAnimationByTick(CenterX(0.9),0,start+GetResolution()/2,start+GetResolution(),EaseOutQuart,SetOffsetX)
+SmoothAnimationByTick(0.9,1,start+GetResolution()/2,start+GetResolution(),EaseOutQuart,SetZoom)
+end
+RunShaderByTick(GetResolution()*4*29+GetResolution()*2,GetResolution()*4*37+GetResolution()*2,BetterColorOffsetShader,2)
+bump(GetResolution()*4*29+GetResolution()*2)
+bump(GetResolution()*4*29+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*30+GetResolution())
+bump(GetResolution()*4*30+GetResolution()+GetResolution()/2)
+bump(GetResolution()*4*30+GetResolution()*2)
+bump(GetResolution()*4*30+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*31+GetResolution())
+bump(GetResolution()*4*31+GetResolution()+GetResolution()/2)
+bump(GetResolution()*4*31+GetResolution()*2)
+bump(GetResolution()*4*31+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*32+GetResolution())
+bump(GetResolution()*4*32+GetResolution()+GetResolution()/2)
+bump(GetResolution()*4*32+GetResolution()*2)
+bump(GetResolution()*4*32+GetResolution()*2+GetResolution()/4*3)
+bump(GetResolution()*4*32+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*33+GetResolution()/4)
+bump(GetResolution()*4*33+GetResolution())
+bump(GetResolution()*4*33+GetResolution()+GetResolution()/4)
+bump(GetResolution()*4*33+GetResolution()+GetResolution()/4*2)
+bump(GetResolution()*4*33+GetResolution()+GetResolution()/4*3)
+bump(GetResolution()*4*33+GetResolution()*2)
+bump(GetResolution()*4*33+GetResolution()*2+GetResolution()/4*3)
+bump(GetResolution()*4*33+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*34+GetResolution()/4)
+bump(GetResolution()*4*34+GetResolution())
+bump(GetResolution()*4*34+GetResolution()+GetResolution()/2)
+bump(GetResolution()*4*34+GetResolution()+GetResolution()/4*3)
+bump(GetResolution()*4*34+GetResolution()*2)
+bump(GetResolution()*4*34+GetResolution()*2+GetResolution()/4*3)
+bump(GetResolution()*4*34+GetResolution()*3+GetResolution()/2)
+bump(GetResolution()*4*35+GetResolution()/4)
+bump(GetResolution()*4*35+GetResolution())
+bump(GetResolution()*4*35+GetResolution()+GetResolution()/4)
+bump(GetResolution()*4*35+GetResolution()+GetResolution()/4*2)
+bump(GetResolution()*4*35+GetResolution()+GetResolution()/4*3)
+bump(GetResolution()*4*35+GetResolution()*2)
+SmoothAnimationByTick(
+1,
+0.8,
+GetResolution()*4*35+GetResolution()*2,
+GetResolution()*4*36+GetResolution()*2,
+EaseInQuad,
+SetZoom
+)
+SlicedSmoothAnimationByTick(
+0,
+CenterX(0.8)-300,
+GetResolution()*4*35+GetResolution()*2,
+GetResolution()*4*36+GetResolution()*2,
+GetResolution()/4,
+EaseInQuad,
+SetOffsetX
+)
+SlicedSmoothAnimationByTick(
+0,
+CenterX(0.8)+300,
+GetResolution()*4*35+GetResolution()*2+GetResolution()/8,
+GetResolution()*4*36+GetResolution()*2+GetResolution()/8,
+GetResolution()/4,
+EaseInQuad,
+SetOffsetX
+)
+SmoothAnimationByTick(
+1,
+CenterY(0.8),
+GetResolution()*4*35+GetResolution()*2,
+GetResolution()*4*36+GetResolution()*2,
+EaseInQuad,
+SetOffsetY
+)
+InstantaneousAnimationByTickAndWait(
+CenterX(0.8),
+GetResolution()*4*36+GetResolution()*2+GetResolution()/2,
+SetOffsetX
+)
+WaitUntilTick(GetPPQ()*4*37+GetPPQ()*2)
+RunShaderByTick(GetPPQ()*4*37+GetPPQ()*2,GetPPQ()*4*52+GetPPQ()*2,WaveShader)
+start=GetResolution()*4*37
+while start&lt;=GetResolution()*4*52 do
+SmoothAnimationByTickAndWait(CenterY(0.8),CenterY(0.8)+50,start,start+GetResolution()/2,EaseOutQuart,SetOffsetY)
+SmoothAnimationByTickAndWait(CenterY(0.8)+50,CenterY(0.8),start+GetResolution()/2,start+GetResolution(),EaseOutQuart,SetOffsetY)
+start=start+GetResolution()
+end
+RunShaderByTick(GetResolution()*4*52+GetResolution()*2,GetResolution()*4*53+GetResolution()*2,GlitchShader)
+SmoothAnimationByTickAndWait(0.35,0.8,GetResolution()*4*51+GetResolution()/2,GetResolution()*4*52+GetResolution()*2,EaseOutSine,SetNoteSpeed)
+SmoothAnimationByTickAndWait(0.8,0.2,GetResolution()*4*52+GetResolution()*2,GetResolution()*4*53+GetResolution()*2,EaseOutSine,SetNoteSpeed)
+RunShaderByTick(GetResolution()*4*53+GetResolution()*2,GetResolution()*4*69+GetResolution()*2,InvertPolygonGlitchShader)
+start=GetResolution()*4*53+GetResolution()*2
+while start&lt;=GetResolution()*4*69 do
+SmoothAnimationByTick(CenterX(GetZoom())+30,CenterX(GetZoom())-30,start,start+GetResolution(),EaseOutSine,SetOffsetX)
+SmoothAnimationByTick(CenterX(GetZoom())-30,CenterX(GetZoom())+30,start+GetResolution(),start+GetResolution()*2,EaseOutSine,SetOffsetX)
+start=start+GetResolution()*2
+end
+start=GetResolution()*4*53+GetResolution()*2
+while start&lt;=GetResolution()*4*69 do
+SmoothAnimationByTick(CenterY(GetZoom())+30,CenterY(GetZoom())-30,start,start+GetResolution()*3/2,EaseOutSine,SetOffsetY)
+SmoothAnimationByTick(CenterY(GetZoom())-30,CenterY(GetZoom())+30,start+GetResolution()*3/2,start+GetResolution()*3,EaseOutSine,SetOffsetY)
+start=start+GetResolution()*3
+end
+TargetAnimationByTick(GetZoom,1.0,GetResolution()*4*69+GetResolution()*2,GetResolution()*4*70,EaseOutQuad,SetZoom)
+TargetAnimationByTick(GetOffsetX,0,GetResolution()*4*69+GetResolution()*2,GetResolution()*4*70,EaseOutQuad,SetOffsetX)
+TargetAnimationByTick(GetOffsetY,0,GetResolution()*4*69+GetResolution()*2,GetResolution()*4*70,EaseOutQuad,SetOffsetY)
+SmoothAnimationByTick(0.2,0.8,GetResolution()*4*68+GetResolution()*2,GetResolution()*4*69+GetResolution()*2,EaseInExpo,SetNoteSpeed)
+RunShaderByTickAndWait(GetResolution()*4*69+GetResolution()*2,GetResolution()*4*73+GetResolution()*2,PlainShader)
+function shake(start)
+SlicedSmoothAnimationByTick(
+-100,
+0,
+start,
+start+GetResolution()*2,
+GetResolution()/4,
+EaseInQuad,
+SetOffsetX
+)
+SlicedSmoothAnimationByTick(
+100,
+0,
+start+GetResolution()/8,
+start+GetResolution()*2+GetResolution()/8,
+GetResolution()/4,
+EaseInQuad,
+SetOffsetX
+)
+end
+function drop(start)
+SmoothAnimationByTick(
+0,
+50,
+start,
+start+GetResolution()/2,
+EaseInQuad,
+SetOffsetY
+)
+SmoothAnimationByTick(
+50,
+0,
+start+GetResolution()/2,
+start+GetResolution(),
+EaseInQuad,
+SetOffsetY
+)
+end
+RunShaderByTick(GetResolution()*4*73+GetResolution()*2,GetResolution()*4*74,BetterColorOffsetShader)
+RunShaderByTick(GetResolution()*4*74,GetResolution()*4*74+GetResolution()*2,PlainShader)
+RunShaderByTick(GetResolution()*4*74+GetResolution()*2,GetResolution()*4*75,BetterColorOffsetShader)
+RunShaderByTick(GetResolution()*4*75,GetResolution()*4*75+GetResolution()*2,PlainShader)
+RunShaderByTick(GetResolution()*4*75+GetResolution()*2,GetResolution()*4*76,BetterColorOffsetShader)
+RunShaderByTick(GetResolution()*4*76,GetResolution()*4*77,PlainShader)
+SmoothAnimationByTickAndWait(0.8,0.2,GetResolution()*4*73,GetResolution()*4*73+GetResolution()*2,EaseOutSine,SetNoteSpeed)
+shake(GetResolution()*4*73+GetResolution()*2)
+shake(GetResolution()*4*74+GetResolution()*2)
+shake(GetResolution()*4*75+GetResolution()*2)
+WaitUntilTick(GetResolution()*4*76+GetResolution()*2)
+SmoothAnimationByTick(0.2,0.8,GetResolution()*4*76+GetResolution()*2,GetResolution()*4*77,EaseInSine,SetNoteSpeed)
+TargetAnimationByTick(GetZoom,0.6,GetResolution()*4*76+GetResolution()*2,GetResolution()*4*77,EaseOutQuart,SetZoom)
+TargetAnimationByTick(GetOffsetX,CenterX(0.6),GetResolution()*4*76+GetResolution()*2,GetResolution()*4*77,EaseOutQuart,SetOffsetX)
+TargetAnimationByTick(GetOffsetY,-20,GetResolution()*4*76+GetResolution()*2,GetResolution()*4*77,EaseOutQuart,SetOffsetY)
+RunShaderByTick(GetResolution()*4*77,GetResolution()*4*85+GetResolution()*2,TriangleFrameShader)
+start=GetResolution()*4*77
+while start+GetResolution()*2&lt;=GetResolution()*4*84+GetResolution()*2 do
+SmoothAnimationByTick(CenterX(0.6)-50,CenterX(0.6)+50,start,start+GetResolution(),EaseInOutSine,SetOffsetX)
+SmoothAnimationByTick(CenterX(0.6)+50,CenterX(0.6)-50,start+GetResolution(),start+GetResolution()*2,EaseInOutSine,SetOffsetX)
+start=start+GetResolution()*2
+end
+SmoothAnimationByTick(0.8,0.1,GetResolution()*4*84+GetResolution()*2,GetResolution()*4*85+GetResolution()*2,EaseOutQuart,SetNoteSpeed)
+TargetAnimationByTick(GetZoom,1,GetResolution()*4*84+GetResolution()*2,GetResolution()*4*85+GetResolution()*2,EaseOutQuart,SetZoom)
+TargetAnimationByTick(GetOffsetX,0,GetResolution()*4*84+GetResolution()*2,GetResolution()*4*85+GetResolution()*2,EaseOutQuart,SetOffsetX)
+TargetAnimationByTick(GetOffsetY,0,GetResolution()*4*84+GetResolution()*2,GetResolution()*4*85+GetResolution()*2,EaseOutQuart,SetOffsetY)
+drop(GetResolution()*4*85+GetResolution()*2)
+drop(GetResolution()*4*85+GetResolution()*3+GetResolution()/2)
+drop(GetResolution()*4*86+GetResolution())
+drop(GetResolution()*4*86+GetResolution()+GetResolution()/2)
+drop(GetResolution()*4*86+GetResolution()*2)
+drop(GetResolution()*4*86+GetResolution()*3+GetResolution()/2)
+SmoothAnimationByTick(0.1,0.5,GetResolution()*4*87+GetResolution(),GetResolution()*4*87+GetResolution()*2,EaseOutQuart,SetNoteSpeed)
+SmoothAnimationByTick(1,1.3,GetResolution()*4*87+GetResolution(),GetResolution()*4*87+GetResolution()*2,EaseOutQuart,SetZoom)
+SmoothAnimationByTick(1.3,1,GetResolution()*4*89,GetResolution()*4*89+GetResolution()*2,EaseOutQuart,SetZoom)
+RunShaderByTickAndWait(GetResolution()*4*85+GetResolution()*2,GetResolution()*4*89+GetResolution()*2,PlainShader)
+RunShaderByTickAndWait(GetResolution()*4*89+GetResolution()*2,GetResolution()*4*93+GetResolution()*2,BetterColorOffsetWaveShader,5,10,5,0)
+RunShaderByTickAndWait(GetResolution()*4*93+GetResolution()*2,GetResolution()*4*97+GetResolution()*2,BetterColorOffsetWaveShader,10,10,5,5)
+RunShaderByTickAndWait(GetResolution()*4*97+GetResolution()*2,GetResolution()*4*104,BetterColorOffsetWaveShader,20,10,5,10)
+RunShaderByTickAndWait(GetResolution()*4*104,GetResolution()*4*105+GetResolution()*2,BetterColorOffsetWaveShader,40,40,10,100)
+RunShaderByTickAndWait(GetResolution()*4*105+GetResolution()*2,GetResolution()*4*106+GetResolution()*2,DarkBlankShader)
+RunShaderByTick(GetResolution()*4*106+GetResolution()*2,GetResolution()*4*123+GetResolution()*2,CRTShader)
+InstantaneousAnimationByTick(0,GetResolution()*4*105+GetResolution()*2,SetStartKey)
+InstantaneousAnimationByTick(35,GetResolution()*4*105+GetResolution()*2,SetEndKey)
+SmoothAnimationByTick(-0.01,-0.8,GetResolution()*4*107,GetResolution()*4*108,EaseLinear,SetNoteSpeed)
+WaitUntilTick(GetResolution()*4*123+GetResolution()*2)
+InstantaneousAnimationByTick(0,GetResolution()*4*123+GetResolution()*2,SetStartKey)
+InstantaneousAnimationByTick(127,GetResolution()*4*123+GetResolution()*2,SetEndKey)
+InstantaneousAnimationByTick(0.3,GetResolution()*4*123+GetResolution()*2,SetNoteSpeed)
+RunShaderByTick(GetResolution()*4*123+GetResolution()*2,GetResolution()*4*126,PlainShader)
+
+while GetTicks()&lt;TotalTicks do end
+if readByte(ffmpeg)==0 then
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x1=MEM.readDword()
+local y1=MEM.readDword()
+local w1=MEM.readDword()-x1
+local h1=MEM.readDword()-y1
+MEM.Position=0
+writeByte(FullScreen,0)
+EXE("SetMenu",hPFX,Menu)
+writeByte(AllowSkip,1)
+writeBytes(AllowPause,2)
+AltEnterHook.destroy()
+EXE("SetWindowTextA",hPFX,CurrentCaption)
+EXE("SetWindowLongA",hPFX,-16,CurrentStyle|0x00080000)
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hGFX,MEM.Memory)
+MEM.Position=0
+local x2=MEM.readDword()
+local y2=MEM.readDword()
+local w2=MEM.readDword()-x2
+local h2=MEM.readDword()-y2
+MEM.Position=0
+MEM.size=16
+EXE("GetWindowRect",hPFX,MEM.Memory)
+MEM.Position=0
+local xm=MEM.readDword()
+local ym=MEM.readDword()
+local wm=MEM.readDword()-xm
+local hm=MEM.readDword()-ym
+MEM.Position=0
+EXE("SetWindowPos",hPFX,-2,xm,ym+(h2-h1),wm,hm-(h2-h1),0)
+end
+end).resume()
+</LuaScript>
+</CheatTable>
